@@ -10,6 +10,7 @@ public:
     CSVreader(std::string filepath);
     virtual ~CSVreader();
     bool readline(std::string &buffer);
+    std::string * parseLine();
 
 private:
     std::string _filepath;

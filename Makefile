@@ -1,7 +1,9 @@
 CC=g++ -std=c++0x
 #CXXFLAGS=$(shell wx-config --cxxflags)
 #LIBS=$(shell wx-config --gl-libs --libs)
-#MY_LIBS=-L./libs -lJustSound
+VENDOR_LIBS=-L./vendor/forge -lforge
+VENDOR_HEADERS=-I./vendor/forge/include
+
 #AL_LIBS=-lalut -lvorbisfile -logg
 
 PROJECT_FOLDER=$(shell pwd)
@@ -13,10 +15,13 @@ vpath %.o $(OBJ_DIR)
 OBJECTS=$(addprefix $(OBJ_DIR), $(SOURCES:%.cpp=%.o))
 
 $(OBJ_DIR)%.o: %.cpp
-	$(CC) -c -o $@ $<
+	$(CC) -c -o $@ $< $(VENDOR_LIBS) $(VENDOR_HEADERS)
 
 all: $(SOURCES) $(TARGET)
-    
+
+debug:
+	$(CC) -g $(SOURCES) $(VENDOR_LIBS) $(VENDOR_HEADERS)
+   
 $(OBJECTS): | $(OBJ_DIR)
 
 $(OBJ_DIR):
@@ -25,9 +30,8 @@ $(OBJ_DIR):
 
 
 $(TARGET): $(OBJECTS)
-	$(CC) -o $@ $(OBJECTS)
+	$(CC) -o $@ $(OBJECTS) $(VENDOR_LIBS) $(VENDOR_HEADERS)
 
 
 clean:
 	rm $(OBJECTS)
-

@@ -1,20 +1,24 @@
 #include <iostream>
 #include "include/csvreader.h"
+#include <cassert>
 
 int main(int argc, char *argv[])
 {
-    if (argc > 1) {
-        std::cout << argv[1] << std::endl;
-    }
+    assert(argc > 1);   // Specifying filepath is required.
+
+    std::cout << argv[1] << std::endl;
     std::string filepath(argv[1]);
 
     CSVreader * reader = new CSVreader(filepath);
-    
 
-    uint32_t i = 0;
-    while (reader->readline(filepath)) {
-        std::cout << filepath << std::endl;
+    std::string * resValues;
+    while ((resValues = reader->parseLine()) != 0) {
+        std::cout << "name: " << resValues[0] << std::endl;
+        std::cout << "code: " << resValues[1] << std::endl;
+        std::cout << "cost: " << resValues[2] << std::endl;
+        std::cout << "-----------------" << std::endl;
     }
+
     delete reader;
     return 0;
 }
