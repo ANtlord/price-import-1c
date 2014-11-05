@@ -16,7 +16,9 @@ int main(int argc, char *argv[])
         std::cout << "name: " << resValues[0] << std::endl;
         std::cout << "code: " << resValues[1] << std::endl;
         std::cout << "cost: " << resValues[2] << std::endl;
+        std::cout << "section: " << resValues[3] << std::endl;
         std::cout << "-----------------" << std::endl;
+        delete[] resValues;
     }
 
     delete reader;

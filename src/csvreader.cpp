@@ -9,6 +9,7 @@ CSVreader::CSVreader(std::string filepath)
     _filepath = filepath;
     _isOpen = false;
     _filestream = 0;
+    _sectionName = "";
 }
 std::string * CSVreader::parseLine()
 {
@@ -16,7 +17,7 @@ std::string * CSVreader::parseLine()
     std::string line;
     std::vector<std::string> values;
 
-    std::string * resValues = new std::string[3];
+    std::string * resValues = new std::string[4];
     while(readline(line)){
         values = forge::split(line, ';');
         values = forge::filter<std::string>(
@@ -28,11 +29,14 @@ std::string * CSVreader::parseLine()
         );
 
         if (values.size() == 1) {
+            // If twice programm gets 1 col, then it was name of section.
+            if (resValues[0] != "") _sectionName = resValues[0];
             resValues[0] = values[0];
         }
-        else if (values.size() == 2) {
+        else if (values.size() == 2 && resValues[0] != "") {
             resValues[1] = values[0];
             resValues[2] = values[1];
+            resValues[3] = _sectionName;
             return resValues;
         }
     }
