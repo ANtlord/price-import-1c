@@ -1,6 +1,8 @@
 #include <iostream>
 #include "include/csvreader.h"
 #include <cassert>
+#include <pqxx/pqxx>
+#include "include/SaveCommand.h"
 
 int main(int argc, char *argv[])
 {
@@ -11,8 +13,23 @@ int main(int argc, char *argv[])
 
     CSVreader * reader = new CSVreader(filepath);
 
+    pqxx::connection conn("dbname=cpp_base user=postgres");
+    pqxx::work transaction(conn);
+
     std::string * resValues;
+
+    std::string * fields = new std::string[4];
+    fields[0] = "name";
+    fields[1] = "code";
+    fields[2] = "price";
+    fields[3] = "category_id";
+    SaveCommand * productSaveCmd = new SaveCommand("product", fields, 4);
+
+    fields = new std::string[1];
+    SaveCommand * categorySaveCmd = new SaveCommand("category", fields, 1);
+
     while ((resValues = reader->parseLine()) != 0) {
+        productSaveCmd->addData(resValues);
         std::cout << "name: " << resValues[0] << std::endl;
         std::cout << "code: " << resValues[1] << std::endl;
         std::cout << "cost: " << resValues[2] << std::endl;

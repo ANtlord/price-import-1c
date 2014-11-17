@@ -11,6 +11,7 @@ CSVreader::CSVreader(std::string filepath)
     _filestream = 0;
     _sectionName = "";
 }
+
 std::string * CSVreader::parseLine()
 {
     std::string * result = 0;
@@ -40,6 +41,7 @@ std::string * CSVreader::parseLine()
             return resValues;
         }
     }
+    _sectionName = "";
     return 0;
 }
 
