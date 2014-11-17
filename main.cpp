@@ -1,7 +1,6 @@
 #include <iostream>
 #include "include/csvreader.h"
 #include <cassert>
-#include <pqxx/pqxx>
 #include "include/SaveCommand.h"
 
 int main(int argc, char *argv[])
@@ -12,10 +11,6 @@ int main(int argc, char *argv[])
     std::string filepath(argv[1]);
 
     CSVreader * reader = new CSVreader(filepath);
-
-    pqxx::connection conn("dbname=cpp_base user=postgres");
-    pqxx::work transaction(conn);
-
     std::string * resValues;
 
     std::string * fields = new std::string[4];

@@ -11,7 +11,7 @@ public:
     size_t getFieldsLength() const;
     std::string * getFields() const;
     virtual ~SaveCommand();
-    void execute() const;
+    bool execute() const;
     void addData(std::string * data);
 
 private:
