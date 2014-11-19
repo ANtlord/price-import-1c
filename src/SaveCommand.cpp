@@ -1,7 +1,8 @@
 #include "../include/SaveCommand.h"
 #include "../include/DBSingleton.h"
+#include <join.h>
 
-SaveCommand::SaveCommand(const char* table, std::string * fields, size_t n)
+SaveCommand::SaveCommand(const char* table, std::string fields[], size_t n)
 {
     _fields = fields;
     _n = n;
@@ -25,7 +26,20 @@ bool SaveCommand::execute() const
     if (_data.size() == 0) return false;
     else {
         pqxx::work w(*(DBSingleton::getSingleton()->getConnection()));
-        return true:
+
+        std::string queryString = "insert into "+_table+" (";
+        queryString += forge::join(_fields, _n, ", ");
+        queryString += ") values ";
+
+        size_t i=0;
+        for (auto it = _data.begin(); it != _data.end(); ++it) {
+            queryString += ("("+forge::join(*it, _n, ", ")+")");
+            if (i < _data.size()-1) queryString += ",";
+            ++i;
+        }
+
+        pqxx::result res = w.exec(queryString);
+        return res.size() == 1;
     }
 }
 

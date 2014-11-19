@@ -5,7 +5,7 @@
 class SaveCommand
 {
 public:
-    SaveCommand(const char*  table, std::string * fields, size_t n);
+    SaveCommand(const char*  table, std::string fields[], size_t n);
     //SaveCommand(std::string * data);
     SaveCommand();
     size_t getFieldsLength() const;
