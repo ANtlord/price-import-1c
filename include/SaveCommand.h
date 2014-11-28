@@ -6,13 +6,13 @@ class SaveCommand
 {
 public:
     SaveCommand(const char*  table, std::string fields[], size_t n);
-    //SaveCommand(std::string * data);
     SaveCommand();
     size_t getFieldsLength() const;
     std::string * getFields() const;
     virtual ~SaveCommand();
     bool execute() const;
-    void addData(std::string * data);
+    void addData(std::string data[]);
+    void clearData();
 
 private:
     std::vector <std::string *> _data;
