@@ -4,7 +4,10 @@
 #include <each.h>
 #include <functional>
 #include <exception>
+#include <list>
 
+using pqxx::work;
+using std::list;
 SaveCommand::SaveCommand(const char* table, std::string fields[], size_t n)
 {
     _fields = fields;
@@ -24,20 +27,47 @@ std::string * SaveCommand::getFields() const
     return _fields;
 }
 
-using pqxx::work;
 
 bool SaveCommand::execute() const
 {
     if (_data.size() == 0) return false;
     else {
         work w(*(DBSingleton::getSingleton()->getConnection()));
-        //pqxx::tablewriter writer(w, _table, &_fields[0], &_fields[_n]);
+        list<std::string*> updateData;
+        const std::string UNIQUE_FIELD = "name";
+        const size_t IDX = 0;
 
-        std::string queryString = "insert into category ";
+        std::string insertQueryString = "insert into "+_table+" ";
+
+        for (auto it = _data.begin(); it != _data.end(); ++it) {
+            std::string query = "select exists(select 1 from "+_table
+                    +" where "+UNIQUE_FIELD+"~*"+w.quote(*it[IDX])+")";
+            pqxx::result res;
+            
+            try {
+                res = w.exec(query);
+            }
+            catch (pqxx::data_exception e) {
+                std::cout << "Error query: " << query << std::endl;
+                std::cout << pqxx::sqlesc(*it[IDX]->c_str()) << std::endl;
+                return false;
+            }
+            if (res.size() != 1) {
+                std::cout << "Error while checking existance of "<< it[IDX] << std::endl;
+                return false;
+            }
+            else if (res[0][0].as<bool>()) {    // update entry.
+                updateData.push_back(*it);
+            }
+            else {  // insert entry.
+
+            }
+        }
+
+        std::string queryString = "insert into "+_table+" ";
         queryString += ("("+forge::join(_fields, _n, ", ")+") values ");
 
         size_t i = 0;
-        std::string * arr = 0;
         for (auto it = _data.begin(); it != _data.end(); ++it) {
             forge::each<std::string>([&w](std::string &item){item = w.quote(item);}, *it, _n);
             queryString += ("("+forge::join(*it, _n, ", ")+")");
@@ -59,7 +89,7 @@ size_t SaveCommand::getFieldsLength() const
 
 void SaveCommand::clearData()
 {
-    _data.clear();
+    for (auto it = _data.begin(); it != _data.end(); ++it) delete *it;
 }
 
 void SaveCommand::addData(std::string data[])

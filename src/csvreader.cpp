@@ -50,6 +50,7 @@ bool CSVreader::readline(std::string &buffer){
         _filestream = new std::ifstream(_filepath);
         _isOpen = true;
     }
+
     if (_filestream->eof() || _filestream->bad()) {
         _filestream->close();
         _isOpen = false;
@@ -59,6 +60,9 @@ bool CSVreader::readline(std::string &buffer){
         while (getline(*_filestream, buffer)){
             return true;
         }
+        _filestream->close();
+        _isOpen = false;
+        return false;
     }
 }
 
