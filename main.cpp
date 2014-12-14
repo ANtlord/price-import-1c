@@ -59,17 +59,22 @@ int main(int argc, char *argv[])
 
             // Gets id of category.
             for (auto it = CATEGORIES.begin(); it != CATEGORIES.end(); ++it) {
+                std::cout << "'" << it->at(1) << "'" << std::endl;
+                std::cout << categoryName << " <-" << std::endl;
+                std::cout << (it->at(1) == categoryName) << std::endl;
                 if (it->at(1) == categoryName) {
+                    std::cout << 123 << std::endl;
                     categoryId = it->at(0);
                 }
             }
 
             
         }
+        assert(categoryId != "");
         std::string * data = new std::string[4];
         data[0] = resValues[0];
-        data[1] = resValues[0];
-        data[2] = resValues[0];
+        data[1] = resValues[1];
+        data[2] = resValues[2];
         data[3] = categoryId;
         productSaveCmd->addData(data);
         delete[] resValues;

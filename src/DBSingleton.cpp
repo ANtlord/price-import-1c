@@ -1,6 +1,7 @@
 #include "../include/DBSingleton.h"
 #include <cassert>
 #include <join.h>
+#include <iostream>
 
 using std::string;
 
@@ -43,6 +44,7 @@ std::list<std::vector<string>> DBSingleton::getTableData(string tableName,
         for (auto sit = it.begin(); sit != it.end(); ++sit) {
             vec.push_back(sit.as<string>());
         }
+        resList.push_back(vec);
     }
     w.commit();
     return resList;

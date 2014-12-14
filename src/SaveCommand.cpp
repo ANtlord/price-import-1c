@@ -41,15 +41,14 @@ bool SaveCommand::execute() const
 
         for (auto it = _data.begin(); it != _data.end(); ++it) {
             std::string query = "select exists(select 1 from "+_table
-                    +" where "+UNIQUE_FIELD+"~*"+w.quote(*it[IDX])+")";
+                    +" where "+UNIQUE_FIELD+" ilike "+w.quote(*it[IDX])+")";
             pqxx::result res;
             
             try {
                 res = w.exec(query);
             }
-            catch (pqxx::data_exception e) {
+            catch (pqxx::data_exception &e) {
                 std::cout << "Error query: " << query << std::endl;
-                std::cout << pqxx::sqlesc(*it[IDX]->c_str()) << std::endl;
                 return false;
             }
             if (res.size() != 1) {
@@ -69,14 +68,20 @@ bool SaveCommand::execute() const
 
         size_t i = 0;
         for (auto it = _data.begin(); it != _data.end(); ++it) {
-            forge::each<std::string>([&w](std::string &item){item = w.quote(item);}, *it, _n);
+            forge::each<std::string>([&w](std::string &item){
+                    item = w.quote(item);}, *it, _n);
             queryString += ("("+forge::join(*it, _n, ", ")+")");
             if (i < _data.size()-1) {
                 queryString += ",";
             }
             ++i;
         }
-        w.exec(queryString);
+        try {
+            w.exec(queryString);
+        }
+        catch (pqxx::data_exception &e) {
+            std::cout << "Error query: " << queryString << std::endl;
+        }
         w.commit();
         return true;
     }
