@@ -6,7 +6,6 @@
 
 CSVreader::CSVreader(std::string filepath)
 {
-    i=0;
     _filepath = filepath;
     _isOpen = false;
     _filestream = 0;
@@ -34,9 +33,6 @@ std::string * CSVreader::parseLine()
             // If twice programm gets 1 col, then it was name of section.
             if (resValues[0] != "") {
                 _sectionName = resValues[0];
-                if (i==2) {
-                    std::cout << _sectionName << std::endl;
-                }
             } 
             resValues[0] = values[0];
         }
@@ -47,16 +43,10 @@ std::string * CSVreader::parseLine()
             size_t n = 0;
             while ((n = values[1].find(' ')) != std::string::npos) {
                 values[1].erase(n);
-                if (values[1] == "3 348.00") {
-                    std::cout << values[1] << std::endl;
-                }
             }
 
             resValues[2] = values[1];
             resValues[3] = _sectionName;
-            if (i==2) {
-                std::cout << _sectionName << std::endl;
-            }
             return resValues;
         }
     }
@@ -68,7 +58,6 @@ bool CSVreader::readline(std::string &buffer){
     if (!_isOpen) {
         _filestream = new std::ifstream(_filepath);
         _isOpen = true;
-        ++i;
     }
 
     if (_filestream->eof() || _filestream->bad()) {
