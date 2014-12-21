@@ -17,6 +17,7 @@ private:
     std::ifstream * _filestream;
     bool _isOpen;
     std::string _sectionName;
+    int i;
 };
 
 #endif //CSVREADER_H

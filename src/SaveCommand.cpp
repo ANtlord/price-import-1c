@@ -94,7 +94,8 @@ size_t SaveCommand::getFieldsLength() const
 
 void SaveCommand::clearData()
 {
-    for (auto it = _data.begin(); it != _data.end(); ++it) delete *it;
+    for (auto it = _data.begin(); it != _data.end(); ++it) delete[] *it;
+    _data.clear();
 }
 
 void SaveCommand::addData(std::string data[])
