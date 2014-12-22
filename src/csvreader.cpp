@@ -34,16 +34,16 @@ std::string * CSVreader::parseLine()
             if (resValues[0] != "") {
                 _sectionName = resValues[0];
             } 
-            resValues[0] = values[0];
+            // If it is not section's name, it is product's name. Code and
+            // price of it will be added in next iteration.
+            resValues[0] = values[0];   
         }
         else if (values.size() == 2 && resValues[0] != "") {
             resValues[1] = values[0];
 
             std::replace(values[1].begin(), values[1].end(), ',', '.');
-            size_t n = 0;
-            while ((n = values[1].find(' ')) != std::string::npos) {
-                values[1].erase(n);
-            }
+            forge::filter([](char &c) -> bool {return (c=='.' || c>47 && c<58);
+                    }, values[1]);  // all numbers and dot must be right. [0-9]\.
 
             resValues[2] = values[1];
             resValues[3] = _sectionName;

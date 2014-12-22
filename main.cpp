@@ -68,8 +68,6 @@ int main(int argc, char *argv[])
         data[2] = resValues[2];
         data[3] = categoryId;
         productSaveCmd->addData(data);
-        //productSaveCmd->execute();
-        //productSaveCmd->clearData();
         delete[] resValues;
     }
     bool res = productSaveCmd->execute();
