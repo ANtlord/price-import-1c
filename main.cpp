@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
     std::string * fields = new std::string[1];
     fields[0] = "name";
     SaveCommand * categorySaveCmd = new SaveCommand(CATEGORY_TABLE_NAME.c_str(),
-            fields, 1);
+            fields, 1, "name");
 
     while ((resValues = reader->parseLine()) != 0) {
         if (categoryName != resValues[3]) {
