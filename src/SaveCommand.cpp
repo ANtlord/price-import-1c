@@ -8,25 +8,30 @@
 
 using pqxx::work;
 using std::list;
-SaveCommand::SaveCommand(const char* table, std::string fields[], size_t n)
+SaveCommand::SaveCommand(const char* table, std::string fields[], size_t n,
+        const char * key) : _KEY(key), _TABLE(table), _N(n)
 {
-    _fields = fields;
-    _n = n;
-    _table = std::string(table);
+    _FIELDS = fields;
+    if (_KEY != 0) {
+        for (size_t i = 0; i < _N; ++i) {
+            if (_FIELDS[i] == _KEY) {
+                _keyIndex = i;
+                i=_N;
+            }
+        }
+    }
+    else _keyIndex=0;
 }
-
-SaveCommand::SaveCommand(){}
 
 SaveCommand::~SaveCommand()
 {
-    delete[] _fields;
+    delete[] _FIELDS;
 }
 
-std::string * SaveCommand::getFields() const
+const std::string * SaveCommand::getFields() const
 {
-    return _fields;
+    return _FIELDS;
 }
-
 
 bool SaveCommand::execute() const
 {
@@ -34,53 +39,76 @@ bool SaveCommand::execute() const
     else {
         work w(*(DBSingleton::getSingleton()->getConnection()));
         list<std::string*> updateData;
-        const std::string UNIQUE_FIELD = "name";
-        const size_t IDX = 0;
+        std::vector<std::string*> insertData;
 
-        std::string insertQueryString = "insert into "+_table+" ";
+        std::string insertQueryString = "insert into "+_TABLE+" ";
 
-        for (auto it = _data.begin(); it != _data.end(); ++it) {
-            std::string query = "select exists(select 1 from "+_table
-                    +" where "+UNIQUE_FIELD+" ilike "+w.quote(*it[IDX])+")";
-            pqxx::result res;
-            
-            try {
-                res = w.exec(query);
-            }
-            catch (pqxx::data_exception &e) {
-                std::cout << "Error query: " << query << std::endl;
-                return false;
-            }
-            if (res.size() != 1) {
-                std::cout << "Error while checking existance of "<< it[IDX] << std::endl;
-                return false;
-            }
-            else if (res[0][0].as<bool>()) {    // update entry.
-                updateData.push_back(*it);
-            }
-            else {  // insert entry.
+        if (_KEY != 0) {
+            for (auto it = _data.begin(); it != _data.end(); ++it) {
+                std::string query = "select exists(select 1 from "+_TABLE
+                        +" where "+_KEY+" = "+w.quote((*it)[_keyIndex])+")";
+                pqxx::result res;
+                
+                try {
+                    res = w.exec(query);
+                }
+                catch (pqxx::data_exception &e) {
+                    std::cout << "Error query: " << query << std::endl;
+                    return false;
+                }
 
+                if (res.size() != 1) {
+                    std::cout << "Error while checking existance of "
+                        << (*it)[_keyIndex] << std::endl;
+                    return false;
+                }
+                else if (res[0][0].as<bool>()) {    // update entry.
+                    //updateData.push_back(*it);
+                    if (_N > 1) {   // If we have another fields, except key field.
+                        std::string arr[_N-1];
+                        size_t index;
+                        for (size_t i = 0; i < _N-1; ++i) {
+                            index = (i < _keyIndex) ? i : i+1;
+                            arr[i] = _FIELDS[index] + "=" + w.quote((*it)[index]);
+                        }
+                        std::string pars = forge::join(arr, (_N-1), ", ");
+                        w.exec("update "+_TABLE+" set "+pars+" where "+_KEY+"="
+                                +w.quote((*it)[_keyIndex]));
+                    }
+                }
+                else if (!res[0][0].as<bool>()) {    // insert entry.
+                    insertData.push_back(*it);
+                }
+                else { // Something just is wrong over there. 
+                     //TODO: handle exception.
+                }
             }
         }
 
-        std::string queryString = "insert into "+_table+" ";
-        queryString += ("("+forge::join(_fields, _n, ", ")+") values ");
+        std::string queryString = "insert into "+_TABLE+" ";
+        queryString += ("("+forge::join(_FIELDS, _N, ", ")+") values ");
 
         size_t i = 0;
-        for (auto it = _data.begin(); it != _data.end(); ++it) {
-            forge::each<std::string>([&w](std::string &item){
-                    item = w.quote(item);}, *it, _n);
-            queryString += ("("+forge::join(*it, _n, ", ")+")");
-            if (i < _data.size()-1) {
-                queryString += ",";
+        //if (insertData.size() == 0 && updateData.size() == 0) {
+        if (_KEY == 0) {
+            insertData = _data;
+        }
+        if (insertData.size() > 0) {
+            for (auto it = insertData.begin(); it != insertData.end(); ++it) {
+                forge::each<std::string>([&w](std::string &item){
+                        item = w.quote(item);}, *it, _N);
+                queryString += ("("+forge::join(*it, _N, ", ")+")");
+                if (i < _data.size()-1) {
+                    queryString += ",";
+                }
+                ++i;
             }
-            ++i;
-        }
-        try {
-            w.exec(queryString);
-        }
-        catch (pqxx::data_exception &e) {
-            std::cout << "Error query: " << queryString << std::endl;
+            try {
+                w.exec(queryString);
+            }
+            catch (pqxx::data_exception &e) {
+                std::cout << "Error query: " << queryString << std::endl;
+            }
         }
         w.commit();
         return true;
@@ -89,7 +117,7 @@ bool SaveCommand::execute() const
 
 size_t SaveCommand::getFieldsLength() const
 {
-    return _n;
+    return _N;
 }
 
 void SaveCommand::clearData()
