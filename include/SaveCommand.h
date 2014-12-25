@@ -26,6 +26,7 @@ private:
     const size_t _N;
     const std::string _TABLE;
     const char * _KEY;
+    uint8_t _keyIndex;
 };
 
 #endif //SAVECOMMAND_H

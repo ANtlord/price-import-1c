@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
     fields[1] = "code";
     fields[2] = "price";
     fields[3] = "category_id";
-    SaveCommand * productSaveCmd = new SaveCommand("product", fields, 4);
+    SaveCommand * productSaveCmd = new SaveCommand("product", fields, 4, "code");
 
     std::string categoryFields[2] = {"id", "name"};
     auto db = DBSingleton::getSingleton();
