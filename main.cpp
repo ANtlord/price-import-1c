@@ -8,7 +8,6 @@ int main(int argc, char *argv[])
 {
     const std::string CATEGORY_TABLE_NAME = "category";
     assert(argc > 1);   // Specifying filepath is required.
-    //std::locale::
 
     std::cout << argv[1] << std::endl;
     std::string filepath(argv[1]);
