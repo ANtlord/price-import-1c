@@ -52,7 +52,7 @@ std::list<std::vector<string>> DBSingleton::getTableData(string tableName,
 }
 
 bool DBSingleton::checkEntry(const string &tableName, const string &fieldName,
-        const string &value, pqxx::work &w)
+        const string &value, pqxx::work &w) const
 {
     string query = "select exists(select 1 from "+tableName+" where "+fieldName
         +" = "+w.quote(value)+")";
@@ -78,7 +78,7 @@ bool DBSingleton::checkEntry(const string &tableName, const string &fieldName,
 
 bool DBSingleton::updateEntry(const std::string &tableName,
         const std::string fields[], const std::string values[], size_t fieldsNum,
-        const std::string &keyFieldName, pqxx::work &w, size_t keyFieldIdx) 
+        const std::string &keyFieldName, pqxx::work &w, size_t keyFieldIdx) const
 {
     if (fieldsNum > 1) {   // If we have another fields, except key field.
         if (keyFieldIdx == 0) {

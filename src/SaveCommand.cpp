@@ -48,17 +48,6 @@ bool SaveCommand::execute() const
                 if (entryIsExist) {    // update entry.
                     dbSingleton->updateEntry(_TABLE, _FIELDS, (*it), _N, _KEY,
                             w, _keyIndex);
-                    //if (_N > 1) {   // If we have another fields, except key field.
-                        //std::string arr[_N-1];
-                        //size_t index;
-                        //for (size_t i = 0; i < _N-1; ++i) {
-                            //index = (i < _keyIndex) ? i : i+1;
-                            //arr[i] = _FIELDS[index] + "=" + w.quote((*it)[index]);
-                        //}
-                        //std::string pars = forge::join(arr, (_N-1), ", ");
-                        //w.exec("update "+_TABLE+" set "+pars+" where "+_KEY+"="
-                                //+w.quote((*it)[_keyIndex]));
-                    //}
                 }
                 else {    // insert entry.
                     insertData.push_back(*it);
