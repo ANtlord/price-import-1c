@@ -3,8 +3,10 @@
 #include <join.h>
 #include <iostream>
 #include <find.h>
+#include <each.h>
 
 using std::string;
+using std::vector;
 
 DBSingleton * DBSingleton::_self = 0;
 
@@ -102,6 +104,34 @@ bool DBSingleton::updateEntry(const std::string &tableName,
         else {
             return false;
         }
+    }
+    return false;
+}
+
+bool DBSingleton::insertEntry(const std::string &tableName,
+        const std::string fields[], const std::list<std::string *> &values,
+        const size_t fieldsNum, pqxx::work &w)
+{
+    std::string queryString = "insert into "+tableName+" ";
+    queryString += ("("+forge::join(fields, fieldsNum, ", ")+") values ");
+    if (values.size() > 0) {
+        size_t i=0;
+        for (auto it: values) {
+            forge::each<std::string>([&w](std::string &item){
+                    item = w.quote(item);}, it, fieldsNum);
+            queryString += ("("+forge::join(it, fieldsNum, ", ")+")");
+            if (i < values.size()-1) {
+                queryString += ",";
+            }
+            ++i;
+        }
+        try {
+            w.exec(queryString);
+        }
+        catch (pqxx::data_exception &e) {
+            std::cout << "Error query: " << queryString << std::endl;
+        }
+        return true;
     }
     return false;
 }

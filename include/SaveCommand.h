@@ -2,6 +2,7 @@
 #define SAVECOMMAND_H
 #include <string>
 #include <vector>
+#include <list>
 class SaveCommand
 {
 public:
@@ -21,7 +22,7 @@ public:
     void clearData();
 
 private:
-    std::vector <std::string *> _data;
+    std::list <std::string *> _data;
     const std::string * _FIELDS;
     const size_t _N;
     const std::string _TABLE;

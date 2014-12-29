@@ -36,7 +36,7 @@ bool SaveCommand::execute() const
     else {
         DBSingleton * dbSingleton = DBSingleton::getSingleton();
         work w(*(dbSingleton->getConnection()));
-        std::vector<std::string*> insertData;
+        std::list<std::string*> insertData;
 
         std::string insertQueryString = "insert into "+_TABLE+" ";
 
@@ -61,24 +61,7 @@ bool SaveCommand::execute() const
         if (_KEY == 0) {
             insertData = _data;
         }
-        if (insertData.size() > 0) {
-            size_t i = 0;
-            for (auto it = insertData.begin(); it != insertData.end(); ++it) {
-                forge::each<std::string>([&w](std::string &item){
-                        item = w.quote(item);}, *it, _N);
-                queryString += ("("+forge::join(*it, _N, ", ")+")");
-                if (i < _data.size()-1) {
-                    queryString += ",";
-                }
-                ++i;
-            }
-            try {
-                w.exec(queryString);
-            }
-            catch (pqxx::data_exception &e) {
-                std::cout << "Error query: " << queryString << std::endl;
-            }
-        }
+        dbSingleton->insertEntry(_TABLE, _FIELDS, insertData, _N, w);
         w.commit();
         return true;
     }
