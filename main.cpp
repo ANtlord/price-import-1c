@@ -3,13 +3,23 @@
 #include <cassert>
 #include "include/SaveCommand.h"
 #include "include/DBSingleton.h"
+#include "include/ConfigSingleton.h"
 
 int main(int argc, char *argv[])
 {
-    const std::string CATEGORY_TABLE_NAME = "category";
-    assert(argc > 1);   // Specifying filepath is required.
+    const std::string CATEGORY_TABLE_NAME = "service_category";
+    const std::string PRODUCT_TABLE_NAME = "service_product";
+    const std::string COMPANY_TABLE_NAME = "service_company";
 
-    std::cout << argv[1] << std::endl;
+    assert(argc > 2);   // Specifying filepath is required.
+
+    ConfigSingleton::getSingleton()
+        ->addOption("company_id", std::string(argv[2]))
+        ->addOption("db_name", "maindb")
+        ->addOption("db_user", "postgres");
+
+    std::cout << "file: " << argv[1] << std::endl;
+    std::cout << "company ID: " << argv[1] << std::endl;
     std::string filepath(argv[1]);
 
     CSVreader * reader = new CSVreader(filepath);
@@ -38,7 +48,8 @@ int main(int argc, char *argv[])
     fields[1] = "code";
     fields[2] = "price";
     fields[3] = "category_id";
-    SaveCommand * productSaveCmd = new SaveCommand("product", fields, 4, "code");
+    SaveCommand * productSaveCmd = new SaveCommand(PRODUCT_TABLE_NAME.c_str(),
+            fields, 4, "code");
 
     std::string categoryFields[2] = {"id", "name"};
     auto db = DBSingleton::getSingleton();

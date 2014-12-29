@@ -38,8 +38,6 @@ bool SaveCommand::execute() const
         work w(*(dbSingleton->getConnection()));
         std::list<std::string*> insertData;
 
-        std::string insertQueryString = "insert into "+_TABLE+" ";
-
         if (_KEY != 0) {
             for (auto it = _data.begin(); it != _data.end(); ++it) {
                 bool entryIsExist = dbSingleton->checkEntry(_TABLE, _KEY,
@@ -54,9 +52,6 @@ bool SaveCommand::execute() const
                 }
             }
         }
-
-        std::string queryString = "insert into "+_TABLE+" ";
-        queryString += ("("+forge::join(_FIELDS, _N, ", ")+") values ");
 
         if (_KEY == 0) {
             insertData = _data;

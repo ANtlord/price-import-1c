@@ -1,4 +1,5 @@
 #include "../include/DBSingleton.h"
+#include "../include/ConfigSingleton.h"
 #include <cassert>
 #include <join.h>
 #include <iostream>
@@ -12,7 +13,9 @@ DBSingleton * DBSingleton::_self = 0;
 
 DBSingleton::DBSingleton()
 {
-    _connection = new pqxx::connection("dbname=cpp_base user=postgres");
+    auto config = ConfigSingleton::getSingleton();
+    _connection = new pqxx::connection("dbname="+config->getOption("db_name")
+            +" user="+config->getOption("db_user"));
 }
 
 DBSingleton * DBSingleton::getSingleton()
@@ -130,6 +133,7 @@ bool DBSingleton::insertEntry(const std::string &tableName,
         }
         catch (pqxx::data_exception &e) {
             std::cout << "Error query: " << queryString << std::endl;
+            return false;
         }
         return true;
     }
