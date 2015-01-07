@@ -63,7 +63,20 @@ public:
             const std::list<std::string *> &values, size_t fieldsNum,
             pqxx::work &w);
 
+
 private:
+    ///
+    /// \brief Method for getting condition. This condition helps to work
+    /// with entries of pointed company.
+    /// \param tableName - name of table of the target entry.
+    /// \param keyField - name of field, which will be used in search.
+    /// \param value - value for search.
+    /// \return condition as string.
+    ///
+    std::string _generateCondition(const std::string &tableName,
+            const std::string &keyField, const std::string &keyValue,
+            pqxx::work &w) const;
+
     DBSingleton();
     virtual ~DBSingleton ();
     static DBSingleton * _self;

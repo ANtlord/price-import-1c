@@ -38,12 +38,14 @@ DBSingleton::~DBSingleton ()
 std::list<std::vector<string>> DBSingleton::getTableData(string tableName,
         const string fields[], const size_t fieldsSize)
 {
+    // Gets data.
     if (fields != 0 || fieldsSize != 0) assert(fieldsSize > 0 && fields != 0);
     pqxx::work w(*this->getConnection());
     string queryString = "select " + ((fields == 0) ? "*" : forge::join(fields,
                 fieldsSize, ",")) + " from " + tableName;
     pqxx::result res = w.exec(queryString);
 
+    // Parses data.
     std::list<std::vector<string>> resList;
     for (auto it = res.begin(); it != res.end(); ++it) {
         std::vector<string> vec;
@@ -59,8 +61,8 @@ std::list<std::vector<string>> DBSingleton::getTableData(string tableName,
 bool DBSingleton::checkEntry(const string &tableName, const string &fieldName,
         const string &value, pqxx::work &w) const
 {
-    string query = "select exists(select 1 from "+tableName+" where "+fieldName
-        +" = "+w.quote(value)+")";
+    string query = "select exists(select 1 from "+tableName+" as t1"
+        +_generateCondition(tableName, fieldName, value, w)+")";
 
     pqxx::result res;
     try {
@@ -87,6 +89,7 @@ bool DBSingleton::updateEntry(const std::string &tableName,
 {
     if (fieldsNum > 1) {   // If we have another fields, except key field.
         if (keyFieldIdx == 0) {
+            // Computes index of key field.
             keyFieldIdx = forge::findFirst<std::string>(
                     [&keyFieldName](const std::string &v) -> bool {
                     return v == keyFieldName;}, fields, fieldsNum);
@@ -100,8 +103,8 @@ bool DBSingleton::updateEntry(const std::string &tableName,
                 arr[i] = fields[index] + "=" + w.quote(values[index]);
             }
             std::string pars = forge::join(arr, (fieldsNum-1), ", ");
-            w.exec("update "+tableName+" set "+pars+" where "+keyFieldName+"="
-                    +w.quote(values[keyFieldIdx]));
+            w.exec("update "+tableName+" set "+pars+_generateCondition(
+                        tableName, keyFieldName, values[keyFieldIdx], w));
             return true;
         }
         else {
@@ -138,4 +141,24 @@ bool DBSingleton::insertEntry(const std::string &tableName,
         return true;
     }
     return false;
+}
+
+std::string DBSingleton::_generateCondition(const std::string &tableName,
+        const std::string &keyField, const std::string &keyValue,
+        pqxx::work &w) const
+{
+    auto config = ConfigSingleton::getSingleton();
+    std::string res;
+
+    if (config->getOption("product_table") == tableName){
+        res = " left join "+config->getOption("category_table")+" as t2 on"
+            +" t1.section_id = t2.id where t1.";
+    }
+    res += " where "+keyField+" = "+w.quote(keyValue)+" and ";
+
+    if (config->getOption("product_table") == tableName) res += "t2";
+    else res += "t1";
+
+    res += ".section_id = " + config->getOption("company_id");
+    return res;
 }

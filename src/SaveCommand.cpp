@@ -39,16 +39,14 @@ bool SaveCommand::execute() const
         std::list<std::string*> insertData;
 
         if (_KEY != 0) {
-            for (auto it = _data.begin(); it != _data.end(); ++it) {
-                bool entryIsExist = dbSingleton->checkEntry(_TABLE, _KEY,
-                        (*it)[_keyIndex], w);
-                
-                if (entryIsExist) {    // update entry.
-                    dbSingleton->updateEntry(_TABLE, _FIELDS, (*it), _N, _KEY,
-                            w, _keyIndex);
+            for (auto it: _data) {
+                // update entry.
+                if (dbSingleton->checkEntry(_TABLE, _KEY, it[_keyIndex], w)) {
+                    dbSingleton->updateEntry(_TABLE, _FIELDS, it, _N, _KEY, w,
+                            _keyIndex);
                 }
                 else {    // insert entry.
-                    insertData.push_back(*it);
+                    insertData.push_back(it);
                 }
             }
         }
@@ -69,7 +67,7 @@ size_t SaveCommand::getFieldsLength() const
 
 void SaveCommand::clearData()
 {
-    for (auto it = _data.begin(); it != _data.end(); ++it) delete[] *it;
+    for (auto it: _data) delete[] it;
     _data.clear();
 }
 

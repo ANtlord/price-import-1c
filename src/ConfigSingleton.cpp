@@ -25,7 +25,7 @@ ConfigSingleton * ConfigSingleton::addOption(const std::string &key, const std::
     return this;
 }
 
-const std::string ConfigSingleton::getOption(const std::string &key) const
+const std::string &ConfigSingleton::getOption(const std::string &key) const
 {
     return _data.at(key);
 }

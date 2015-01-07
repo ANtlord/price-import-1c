@@ -15,27 +15,32 @@ int main(int argc, char *argv[])
 
     ConfigSingleton::getSingleton()
         ->addOption("company_id", std::string(argv[2]))
-        ->addOption("db_name", "maindb")
-        ->addOption("db_user", "postgres");
+        ->addOption("db_name", "maindb_test")
+        ->addOption("db_user", "postgres")
+        ->addOption("product_table", PRODUCT_TABLE_NAME)
+        ->addOption("category_table", CATEGORY_TABLE_NAME);
 
     std::cout << "file: " << argv[1] << std::endl;
-    std::cout << "company ID: " << argv[1] << std::endl;
+    std::cout << "company ID: " << argv[2] << std::endl;
     std::string filepath(argv[1]);
 
     CSVreader * reader = new CSVreader(filepath);
     std::string * resValues;
     std::string categoryName = "";
 
-    std::string * fields = new std::string[1];
+    const size_t N = 2;
+    std::string * fields = new std::string[N];
     fields[0] = "name";
+    fields[1] = "section_id";
     SaveCommand * categorySaveCmd = new SaveCommand(CATEGORY_TABLE_NAME.c_str(),
-            fields, 1, "name");
+            fields, N, "name");
 
     while ((resValues = reader->parseLine()) != 0) {
         if (categoryName != resValues[3]) {
             categoryName = resValues[3];
-            std::string * data = new std::string[1];
+            std::string * data = new std::string[N];
             data[0] = resValues[3];
+            data[1] = std::string(argv[2]);
             categorySaveCmd->addData(data);
         }
 
@@ -68,8 +73,6 @@ int main(int argc, char *argv[])
                     categoryId = it->at(0);
                 }
             }
-
-            
         }
         assert(categoryId != "");
         std::string * data = new std::string[4];
