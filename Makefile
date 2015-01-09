@@ -1,7 +1,7 @@
 CC=g++ -std=c++0x
 #CXXFLAGS=$(shell wx-config --cxxflags)
 #LIBS=$(shell wx-config --gl-libs --libs)
-VENDOR_LIBS=-L./vendor/forge -lforge
+VENDOR_LIBS=-L./vendor/forge -lforge -lpqxx
 VENDOR_HEADERS=-I./vendor/forge/include
 
 #AL_LIBS=-lalut -lvorbisfile -logg

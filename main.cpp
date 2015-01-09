@@ -1,26 +1,101 @@
 #include <iostream>
 #include "include/csvreader.h"
 #include <cassert>
+#include "include/SaveCommand.h"
+#include "include/DBSingleton.h"
+#include "include/ConfigSingleton.h"
 
 int main(int argc, char *argv[])
 {
-    assert(argc > 1);   // Specifying filepath is required.
+    const std::string CATEGORY_TABLE_NAME = "service_category";
+    const std::string PRODUCT_TABLE_NAME = "service_product";
+    const std::string COMPANY_TABLE_NAME = "service_company";
 
-    std::cout << argv[1] << std::endl;
+    assert(argc > 2);   // Specifying filepath is required.
+
+    ConfigSingleton::getSingleton()
+        ->addOption("company_id", std::string(argv[2]))
+        ->addOption("db_name", "maindb_test")
+        ->addOption("db_user", "postgres")
+        ->addOption("product_table", PRODUCT_TABLE_NAME)
+        ->addOption("category_table", CATEGORY_TABLE_NAME);
+
+    std::cout << "file: " << argv[1] << std::endl;
+    std::cout << "company ID: " << argv[2] << std::endl;
     std::string filepath(argv[1]);
 
     CSVreader * reader = new CSVreader(filepath);
-
     std::string * resValues;
+    std::string categoryName = "";
+
+    const size_t N = 4;
+    std::string * fields = new std::string[N];
+    fields[0] = "name";
+    fields[1] = "section_id";
+    fields[2] = "sort";
+    fields[3] = "is_active";
+    SaveCommand * categorySaveCmd = new SaveCommand(CATEGORY_TABLE_NAME.c_str(),
+            fields, N, "name");
+
     while ((resValues = reader->parseLine()) != 0) {
-        std::cout << "name: " << resValues[0] << std::endl;
-        std::cout << "code: " << resValues[1] << std::endl;
-        std::cout << "cost: " << resValues[2] << std::endl;
-        std::cout << "section: " << resValues[3] << std::endl;
-        std::cout << "-----------------" << std::endl;
+        if (categoryName != resValues[3]) {
+            categoryName = resValues[3];
+            std::string * data = new std::string[N];
+            data[0] = resValues[3];
+            data[1] = std::string(argv[2]);
+            data[2] = "300";
+            data[3] = "true";
+            categorySaveCmd->addData(data);
+        }
+
         delete[] resValues;
     }
+    categorySaveCmd->execute();
 
+    const size_t PRODUCT_N = 6;
+    fields = new std::string[PRODUCT_N];
+    fields[0] = "name";
+    fields[1] = "code";
+    fields[2] = "price";
+    fields[3] = "section_id";
+    fields[4] = "sort";
+    fields[5] = "is_active";
+    SaveCommand * productSaveCmd = new SaveCommand(PRODUCT_TABLE_NAME.c_str(),
+            fields, PRODUCT_N, "code");
+
+    std::string categoryFields[2] = {"id", "name"};
+    auto db = DBSingleton::getSingleton();
+    std::list<std::vector<std::string>> CATEGORIES = db->getTableData(
+            CATEGORY_TABLE_NAME, categoryFields, 2);
+
+    std::string categoryId = "";
+    categoryName = "";
+    while ((resValues = reader->parseLine()) != 0) {
+        if (categoryName != resValues[3]) {
+            categoryName = resValues[3];
+
+            // Gets id of category.
+            for (auto it = CATEGORIES.begin(); it != CATEGORIES.end(); ++it) {
+                if (it->at(1) == categoryName) {
+                    categoryId = it->at(0);
+                }
+            }
+        }
+        assert(categoryId != "");
+        std::string * data = new std::string[PRODUCT_N];
+        data[0] = resValues[0];
+        data[1] = resValues[1];
+        data[2] = resValues[2];
+        data[3] = categoryId;
+        data[4] = "300";
+        data[5] = "true";
+        productSaveCmd->addData(data);
+        delete[] resValues;
+    }
+    bool res = productSaveCmd->execute();
+
+    delete categorySaveCmd;
+    delete productSaveCmd;
     delete reader;
     return 0;
 }

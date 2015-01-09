@@ -11,6 +11,7 @@ CSVreader::CSVreader(std::string filepath)
     _filestream = 0;
     _sectionName = "";
 }
+
 std::string * CSVreader::parseLine()
 {
     std::string * result = 0;
@@ -30,16 +31,26 @@ std::string * CSVreader::parseLine()
 
         if (values.size() == 1) {
             // If twice programm gets 1 col, then it was name of section.
-            if (resValues[0] != "") _sectionName = resValues[0];
-            resValues[0] = values[0];
+            if (resValues[0] != "") {
+                _sectionName = resValues[0];
+            } 
+            // If it is not section's name, it is product's name. Code and
+            // price of it will be added in next iteration.
+            resValues[0] = values[0];   
         }
         else if (values.size() == 2 && resValues[0] != "") {
             resValues[1] = values[0];
+
+            std::replace(values[1].begin(), values[1].end(), ',', '.');
+            forge::filter([](char &c) -> bool {return (c=='.' || c>47 && c<58);
+                    }, values[1]);  // all numbers and dot must be right. [0-9]\.
+
             resValues[2] = values[1];
             resValues[3] = _sectionName;
             return resValues;
         }
     }
+    _sectionName = "";
     return 0;
 }
 
@@ -48,6 +59,7 @@ bool CSVreader::readline(std::string &buffer){
         _filestream = new std::ifstream(_filepath);
         _isOpen = true;
     }
+
     if (_filestream->eof() || _filestream->bad()) {
         _filestream->close();
         _isOpen = false;
@@ -57,6 +69,9 @@ bool CSVreader::readline(std::string &buffer){
         while (getline(*_filestream, buffer)){
             return true;
         }
+        _filestream->close();
+        _isOpen = false;
+        return false;
     }
 }
 
