@@ -152,9 +152,9 @@ std::string DBSingleton::_generateCondition(const std::string &tableName,
 
     if (config->getOption("product_table") == tableName){
         res = " left join "+config->getOption("category_table")+" as t2 on"
-            +" t1.section_id = t2.id where t1.";
+            +" t1.section_id = t2.id";
     }
-    res += " where "+keyField+" = "+w.quote(keyValue)+" and ";
+    res += " where t1."+keyField+" = "+w.quote(keyValue)+" and ";
 
     if (config->getOption("product_table") == tableName) res += "t2";
     else res += "t1";
