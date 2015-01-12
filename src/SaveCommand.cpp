@@ -6,6 +6,7 @@
 #include <functional>
 #include <exception>
 #include <list>
+#include <iostream>
 
 using pqxx::work;
 using std::list;
@@ -56,6 +57,8 @@ bool SaveCommand::execute() const
         }
         dbSingleton->insertEntry(_TABLE, _FIELDS, insertData, _N, w);
         w.commit();
+        std::cout << "udpated: " << _data.size() - insertData.size() << std::endl;
+        std::cout << "inserted: " << insertData.size() << std::endl;
         return true;
     }
 }

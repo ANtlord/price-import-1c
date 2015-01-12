@@ -65,6 +65,7 @@ public:
 
 
 private:
+    enum QueryType : uint8_t { SELECT=0, UPDATE=1 };
     ///
     /// \brief Method for getting condition. This condition helps to work
     /// with entries of pointed company.
@@ -75,7 +76,7 @@ private:
     ///
     std::string _generateCondition(const std::string &tableName,
             const std::string &keyField, const std::string &keyValue,
-            pqxx::work &w) const;
+            pqxx::work &w, const QueryType type) const;
 
     DBSingleton();
     virtual ~DBSingleton ();

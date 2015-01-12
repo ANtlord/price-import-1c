@@ -1,4 +1,5 @@
 #include "../include/ExcelReader.h"
+#include <libxls/xls.h>
 using std::string;
 ExcelReader::ExcelReader(std::string filepath) : DataFileReader(filepath)
 {

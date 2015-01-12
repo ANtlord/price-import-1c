@@ -10,14 +10,10 @@ class CSVreader : public DataFileReader
 public:
     CSVreader(std::string filepath);
     virtual ~CSVreader();
-    virtual bool readline(std::string &buffer);
-    virtual std::string * parseLine();
+    bool readline(std::string &buffer) override;
+    std::string * parseLine() override;
 
 private:
-    std::string _filepath;
-    std::ifstream * _filestream;
-    bool _isOpen;
-    std::string _sectionName;
 };
 
 #endif //CSVREADER_H

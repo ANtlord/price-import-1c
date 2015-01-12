@@ -62,7 +62,7 @@ bool DBSingleton::checkEntry(const string &tableName, const string &fieldName,
         const string &value, pqxx::work &w) const
 {
     string query = "select exists(select 1 from "+tableName+" as t1"
-        +_generateCondition(tableName, fieldName, value, w)+")";
+        +_generateCondition(tableName, fieldName, value, w, SELECT)+")";
 
     pqxx::result res;
     try {
@@ -103,8 +103,15 @@ bool DBSingleton::updateEntry(const std::string &tableName,
                 arr[i] = fields[index] + "=" + w.quote(values[index]);
             }
             std::string pars = forge::join(arr, (fieldsNum-1), ", ");
-            w.exec("update "+tableName+" set "+pars+_generateCondition(
-                        tableName, keyFieldName, values[keyFieldIdx], w));
+            std::string query = "update "+tableName+" as t1 set "+pars
+                +_generateCondition(tableName, keyFieldName,
+                        values[keyFieldIdx], w, UPDATE);
+            try {
+                w.exec(query);
+            }
+            catch (pqxx::data_exception &e) {
+                std::cout << "Error query in update: " << query << std::endl;
+            }
             return true;
         }
         else {
@@ -122,6 +129,7 @@ bool DBSingleton::insertEntry(const std::string &tableName,
     queryString += ("("+forge::join(fields, fieldsNum, ", ")+") values ");
     if (values.size() > 0) {
         size_t i=0;
+
         for (auto it: values) {
             forge::each<std::string>([&w](std::string &item){
                     item = w.quote(item);}, it, fieldsNum);
@@ -145,16 +153,20 @@ bool DBSingleton::insertEntry(const std::string &tableName,
 
 std::string DBSingleton::_generateCondition(const std::string &tableName,
         const std::string &keyField, const std::string &keyValue,
-        pqxx::work &w) const
+        pqxx::work &w, const QueryType type) const
 {
     auto config = ConfigSingleton::getSingleton();
     std::string res;
+    const bool FLAG = (type == SELECT);
 
     if (config->getOption("product_table") == tableName){
-        res = " left join "+config->getOption("category_table")+" as t2 on"
+        res = (FLAG) ? " left join " : " from ";
+        res += config->getOption("category_table")+" as t2"
+            + ((FLAG) ? " on" : " where")
             +" t1.section_id = t2.id";
     }
-    res += " where t1."+keyField+" = "+w.quote(keyValue)+" and ";
+    res += string((FLAG) ? " where" : " and")+" t1."+keyField+" = "+w.quote(keyValue)
+        +" and ";
 
     if (config->getOption("product_table") == tableName) res += "t2";
     else res += "t1";

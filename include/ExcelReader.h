@@ -6,12 +6,11 @@ class ExcelReader : public DataFileReader
 {
 public:
     ExcelReader(std::string filepath);
-    virtual bool readline(std::string &buffer);
-    virtual std::string * parseLine();
+    bool readline(std::string &buffer) override;
+    std::string * parseLine() override;
     virtual ~ExcelReader();
 
 private:
-    /* data */
 };
 
 #endif //EXCELREADER_H
