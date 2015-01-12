@@ -4,12 +4,8 @@
 #include <filter.h>
 #include <each.h>
 
-CSVreader::CSVreader(std::string filepath)
+CSVreader::CSVreader(std::string filepath) : DataFileReader(filepath)
 {
-    _filepath = filepath;
-    _isOpen = false;
-    _filestream = 0;
-    _sectionName = "";
 }
 
 std::string * CSVreader::parseLine()
@@ -77,8 +73,4 @@ bool CSVreader::readline(std::string &buffer){
 
 CSVreader::~CSVreader()
 {
-    if (_filestream != 0 && _filestream->is_open()) {
-        _filestream->close();
-        delete _filestream;
-    }
 }

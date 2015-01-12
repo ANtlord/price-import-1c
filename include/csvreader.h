@@ -3,14 +3,15 @@
 
 #include <string.h>
 #include <fstream>
+#include "DataFileReader.h"
 
-class CSVreader
+class CSVreader : public DataFileReader
 {
 public:
     CSVreader(std::string filepath);
     virtual ~CSVreader();
-    bool readline(std::string &buffer);
-    std::string * parseLine();
+    virtual bool readline(std::string &buffer);
+    virtual std::string * parseLine();
 
 private:
     std::string _filepath;
