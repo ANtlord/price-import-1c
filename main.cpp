@@ -13,6 +13,7 @@ int main(int argc, char *argv[])
 
     assert(argc > 2);   // Specifying filepath is required.
 
+    // Saving options of the programm.
     ConfigSingleton::getSingleton()
         ->addOption("company_id", std::string(argv[2]))
         ->addOption("db_name", "maindb_test")
@@ -24,10 +25,13 @@ int main(int argc, char *argv[])
     std::cout << "company ID: " << argv[2] << std::endl;
     std::string filepath(argv[1]);
 
+    // Initializing reader of file.
+    // TODO: May be factory of readers?
     CSVreader * reader = new CSVreader(filepath);
     std::string * resValues;
-    std::string categoryName = "";
 
+    // Setting up parameters for parsing and storing categories.
+    std::string categoryName = "";
     const size_t N = 4;
     std::string * fields = new std::string[N];
     fields[0] = "name";
@@ -37,6 +41,7 @@ int main(int argc, char *argv[])
     SaveCommand * categorySaveCmd = new SaveCommand(CATEGORY_TABLE_NAME.c_str(),
             fields, N, "name");
 
+    // Parsing and saving categories.
     while ((resValues = reader->parseLine()) != 0) {
         if (categoryName != resValues[3]) {
             categoryName = resValues[3];
@@ -52,6 +57,7 @@ int main(int argc, char *argv[])
     }
     categorySaveCmd->execute();
 
+    // Setting up parameters for parsing and storing products.
     const size_t PRODUCT_N = 6;
     fields = new std::string[PRODUCT_N];
     fields[0] = "name";
@@ -63,11 +69,14 @@ int main(int argc, char *argv[])
     SaveCommand * productSaveCmd = new SaveCommand(PRODUCT_TABLE_NAME.c_str(),
             fields, PRODUCT_N, "code");
 
+    // Getting ID numbers of the categories for association to numbers in
+    // products data.
     std::string categoryFields[2] = {"id", "name"};
     auto db = DBSingleton::getSingleton();
     std::list<std::vector<std::string>> CATEGORIES = db->getTableData(
             CATEGORY_TABLE_NAME, categoryFields, 2);
 
+    // Parsing and saving products.
     std::string categoryId = "";
     categoryName = "";
     while ((resValues = reader->parseLine()) != 0) {
