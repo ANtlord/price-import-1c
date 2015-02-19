@@ -1,5 +1,4 @@
 *.o
-vendor/*
 *.pyc
 a.out
 *.csv
