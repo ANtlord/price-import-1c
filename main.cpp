@@ -1,5 +1,6 @@
 #include <iostream>
 #include "include/csvreader.h"
+#include "include/ExcelReader.h"
 #include <cassert>
 #include "include/SaveCommand.h"
 #include "include/DBSingleton.h"
@@ -11,7 +12,7 @@ int main(int argc, char *argv[])
     const std::string PRODUCT_TABLE_NAME = "service_product";
     const std::string COMPANY_TABLE_NAME = "service_company";
 
-    assert(argc > 2);   // Specifying filepath is required.
+    assert(argc > 3);   // Specifying filepath is required.
 
     // Saving options of the programm.
     ConfigSingleton::getSingleton()
@@ -25,9 +26,16 @@ int main(int argc, char *argv[])
     std::cout << "company ID: " << argv[2] << std::endl;
     std::string filepath(argv[1]);
 
+    const std::string EXTENSION(argv[3]);
+    DataFileReader * reader = nullptr;
+    if (EXTENSION == "csv")
+        reader = new CSVreader(filepath);
+    else if (EXTENSION == "xls" || EXTENSION == "xlsx")
+        reader = new ExcelReader(filepath);
+    assert(reader != nullptr);  // Extension is not supporting.
+    return 0;
+
     // Initializing reader of file.
-    // TODO: May be factory of readers?
-    CSVreader * reader = new CSVreader(filepath);
     std::string * resValues;
 
     // Setting up parameters for parsing and storing categories.
