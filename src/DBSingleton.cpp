@@ -9,7 +9,7 @@
 using std::string;
 using std::vector;
 
-DBSingleton * DBSingleton::_self = 0;
+DBSingleton * DBSingleton::_self = nullptr;
 
 DBSingleton::DBSingleton()
 {
@@ -20,7 +20,7 @@ DBSingleton::DBSingleton()
 
 DBSingleton * DBSingleton::getSingleton()
 {
-    if (_self == 0)
+    if (_self == nullptr)
         _self = new DBSingleton();
     return _self;
 }
