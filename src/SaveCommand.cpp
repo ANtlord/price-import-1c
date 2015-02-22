@@ -23,6 +23,7 @@ SaveCommand::SaveCommand(const char* table, std::string fields[], size_t n,
 
 SaveCommand::~SaveCommand()
 {
+    clearData();
     delete[] _FIELDS;
 }
 
@@ -81,5 +82,5 @@ void SaveCommand::addData(std::string data[])
 
 const std::list <std::string*> * SaveCommand::getData() const
 {
-    return _data;
+    return &_data;
 }
