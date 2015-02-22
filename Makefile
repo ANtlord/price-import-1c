@@ -1,9 +1,8 @@
 CC=g++ -std=c++0x
 #CXXFLAGS=$(shell wx-config --cxxflags)
 #LIBS=$(shell wx-config --gl-libs --libs)
-VENDOR_LIBS=-L./vendor/forge -lforge -lpqxx -L./vendor/libxls/lib/ -lxlsreader
-VENDOR_HEADERS=-I./vendor/forge/include -I./vendor/libxls/include
-
+VENDOR_LIBS=-L./vendor/forge -lforge -lpqxx -L./vendor/libxls/libxls/build/lib -lxlsreader
+VENDOR_HEADERS=-I./vendor/forge/include -I./vendor/libxls/libxls/build/include
 #AL_LIBS=-lalut -lvorbisfile -logg
 
 PROJECT_FOLDER=$(shell pwd)
