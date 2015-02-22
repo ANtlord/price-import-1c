@@ -41,11 +41,9 @@ int main(int argc, char *argv[])
     // Setting up parameters for parsing and storing categories.
     std::string categoryName = "";
     const size_t N = 4;
-    std::string * fields = new std::string[N];
-    fields[0] = "name";
-    fields[1] = "section_id";
-    fields[2] = "sort";
-    fields[3] = "is_active";
+    std::string * fields = new std::string[N]{
+        "name", "section_id", "sort", "is_active"
+    };
     SaveCommand * categorySaveCmd = new SaveCommand(CATEGORY_TABLE_NAME.c_str(),
             fields, N, "name");
 
@@ -53,27 +51,21 @@ int main(int argc, char *argv[])
     while ((resValues = reader->parseLine()) != 0) {
         if (categoryName != resValues[3]) {
             categoryName = resValues[3];
-            std::string * data = new std::string[N];
-            data[0] = resValues[3];
-            data[1] = std::string(argv[2]);
-            data[2] = "300";
-            data[3] = "true";
+            std::string * data = new std::string[N]{
+                resValues[3], std::string(argv[2]), "300", "true"
+            };
             categorySaveCmd->addData(data);
         }
 
         delete[] resValues;
     }
     categorySaveCmd->execute();
-
+    
     // Setting up parameters for parsing and storing products.
     const size_t PRODUCT_N = 6;
-    fields = new std::string[PRODUCT_N];
-    fields[0] = "name";
-    fields[1] = "code";
-    fields[2] = "price";
-    fields[3] = "section_id";
-    fields[4] = "sort";
-    fields[5] = "is_active";
+    fields = new std::string[PRODUCT_N]{
+        "name", "code", "price", "section_id", "sort", "is_active"
+    };
     SaveCommand * productSaveCmd = new SaveCommand(PRODUCT_TABLE_NAME.c_str(),
             fields, PRODUCT_N, "code");
 
@@ -99,13 +91,9 @@ int main(int argc, char *argv[])
             }
         }
         assert(categoryId != "");
-        std::string * data = new std::string[PRODUCT_N];
-        data[0] = resValues[0];
-        data[1] = resValues[1];
-        data[2] = resValues[2];
-        data[3] = categoryId;
-        data[4] = "300";
-        data[5] = "true";
+        std::string * data = new std::string[PRODUCT_N]{
+            resValues[0], resValues[1], resValues[2], categoryId, "300", "true"
+        };
         productSaveCmd->addData(data);
         delete[] resValues;
     }
