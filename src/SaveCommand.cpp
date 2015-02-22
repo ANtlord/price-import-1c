@@ -78,3 +78,8 @@ void SaveCommand::addData(std::string data[])
 {
     _data.push_back(data);
 }
+
+const std::list <std::string*> * SaveCommand::getData() const
+{
+    return _data;
+}
