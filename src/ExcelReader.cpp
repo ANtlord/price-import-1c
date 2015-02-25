@@ -3,8 +3,11 @@
 #include <iostream>
 using std::string;
 using namespace xls;
-ExcelReader::ExcelReader(std::string filepath) : DataFileReader(filepath)
-                                                 , activeWorkSheet(nullptr)
+ExcelReader::ExcelReader(std::string filepath) : DataFileReader(filepath),
+    activeWorkSheet(nullptr),
+	activeWorkSheetID(-1),
+	workBook(nullptr),
+	numSheets(0)
 {
     string encoding = "utf-8";
     workBook=xls::xls_open(_filepath.c_str(), encoding.c_str());
@@ -20,6 +23,7 @@ ExcelReader::ExcelReader(std::string filepath) : DataFileReader(filepath)
     uint16_t col = 0;
     uint32_t sheetNum = 0;
     activeWorkSheet = xls::xls_getWorkSheet(workBook, sheetNum);
+    xls::xls_parseWorkSheet(activeWorkSheet);
 
     cellContent content;
 	
@@ -29,35 +33,40 @@ ExcelReader::ExcelReader(std::string filepath) : DataFileReader(filepath)
 	
 	OpenSheet(workSheetIndex);
 	
-	//--row, --col;
+    --row, --col;
 	
 	uint32_t numRows = activeWorkSheet->rows.lastrow + 1;
 	uint32_t numCols = activeWorkSheet->rows.lastcol + 1;
 
-	for (uint32_t t=0; t<numRows; t++)
-	{
-        xlsRow *rowP = &activeWorkSheet->rows.row[t];
-		for (uint32_t tt=0; tt<numCols; tt++)
-		{
-			xlsCell	*cell = &rowP->cells.cell[tt];
-			if(cell->row < row) break;
-            if(cell->row > row) {
-                std::cout << content.row << std::endl;
-                tt=numCols;
-                t=numRows;
-            } 
-			
-			if(cell->id == 0x201) continue;
-			
-			if(cell->col == col) {
-				FormatCell(cell, content);
-				//return content;
-                std::cout << content.row << std::endl;
-                tt=numCols;
-                t=numRows;
-			}
-		}
-	}
+    std::cout << numRows << std::endl;
+    std::cout << numCols << std::endl;
+    std::cout << "------------<!: " << std::endl;
+    xlsRow *rowP = &activeWorkSheet->rows.row[0];
+    xlsCell	*cell = &rowP->cells.cell[0];
+    FormatCell(cell, content);
+    std::cout << content.str << std::endl;
+    //for (uint32_t t=0; t<numRows; t++) {
+        //xlsRow *rowP = &activeWorkSheet->rows.row[t];
+        //for (uint32_t tt=0; tt<numCols; tt++){
+            //xlsCell	*cell = &rowP->cells.cell[tt];
+            //if(cell->row < row) break;
+            //if(cell->row > row) {
+                //std::cout << content.str << std::endl;
+                //tt=numCols;
+                //t=numRows;
+            //} 
+            
+            //if(cell->id == 0x201) continue;
+            
+            //if(cell->col == col) {
+                //FormatCell(cell, content);
+                //std::cout << content.str << std::endl;
+                ////return content;
+                //tt=numCols;
+                //t=numRows;
+            //}
+        //}
+    //}
 }
 
 void ExcelReader::FormatCell(xlsCell *cell, cellContent& content) const

@@ -8,10 +8,13 @@ VENDOR_HEADERS=-I./vendor/forge/include -I./vendor/libxls/libxls/build/include
 PROJECT_FOLDER=$(shell pwd)
 TARGET=$(shell basename `pwd`)
 
-SOURCES=$(wildcard src/*.cpp)
+SOURCES=$(wildcard *.cpp src/*.cpp)
+TEST_SOURCES=$(wildcard src/*.cpp)
+
 OBJ_DIR=obj/Release/
 vpath %.o $(OBJ_DIR)
 OBJECTS=$(addprefix $(OBJ_DIR), $(SOURCES:%.cpp=%.o))
+TEST_OBJECTS=$(addprefix $(OBJ_DIR), $(TEST_SOURCES:%.cpp=%.o))
 
 $(OBJ_DIR)%.o: %.cpp
 	$(CC) -c -o $@ $< $(VENDOR_LIBS) $(VENDOR_HEADERS)
@@ -28,12 +31,12 @@ $(OBJ_DIR):
 	mkdir $@
 
 $(TARGET): $(OBJECTS)
-	$(CC) -o $@ main.cpp $(OBJECTS) $(VENDOR_LIBS) $(VENDOR_HEADERS)
+	$(CC) -o $@ $(OBJECTS) $(VENDOR_LIBS) $(VENDOR_HEADERS)
 
 clean:
 	rm $(OBJECTS)
 
-unittest: $(OBJECTS)
+unittest: $(TEST_OBJECTS)
 	./vendor/cxxtest/bin/cxxtestgen --error-printer -o unittests/runner.cpp unittests/*.h
-	$(CC) -o runner unittests/runner.cpp $(OBJECTS) $(VENDOR_HEADERS) $(VENDOR_LIBS)
+	$(CC) -o runner unittests/runner.cpp $(TEST_OBJECTS) $(VENDOR_HEADERS) $(VENDOR_LIBS)
 	./runner
