@@ -4,16 +4,16 @@
 using std::string;
 using namespace xls;
 ExcelReader::ExcelReader(std::string filepath) : DataFileReader(filepath),
-    activeWorkSheet(nullptr),
-	activeWorkSheetID(-1),
-	workBook(nullptr),
-	numSheets(0)
+    _activeWorkSheet(nullptr),
+	_activeWorkSheetID(-1),
+	_workBook(nullptr),
+	_numSheets(0)
 {
     string encoding = "utf-8";
-    workBook=xls::xls_open(_filepath.c_str(), encoding.c_str());
-    if(workBook) {
-		numSheets = workBook->sheets.count;
-		xls_parseWorkBook(workBook);
+    _workBook = xls_open(_filepath.c_str(), encoding.c_str());
+    if(_workBook) {
+		_numSheets = _workBook->sheets.count;
+		xls_parseWorkBook(_workBook);
 	}
     else {
 		throw std::string("failed to open the requested file!");
@@ -22,31 +22,32 @@ ExcelReader::ExcelReader(std::string filepath) : DataFileReader(filepath),
     uint16_t row = 0;
     uint16_t col = 0;
     uint32_t sheetNum = 0;
-    activeWorkSheet = xls::xls_getWorkSheet(workBook, sheetNum);
-    xls::xls_parseWorkSheet(activeWorkSheet);
+    _activeWorkSheet = xls::xls_getWorkSheet(_workBook, sheetNum);
+    xls::xls_parseWorkSheet(_activeWorkSheet);
 
-    cellContent content;
+    CellContent content;
 	
 	//assert(row && col);
 
-	InitIterator();
+	_initIterator();
 	
-	OpenSheet(workSheetIndex);
+	_openSheet(workSheetIndex);
 	
     --row, --col;
 	
-	uint32_t numRows = activeWorkSheet->rows.lastrow + 1;
-	uint32_t numCols = activeWorkSheet->rows.lastcol + 1;
+	uint32_t numRows = _activeWorkSheet->rows.lastrow + 1;
+	uint32_t numCols = _activeWorkSheet->rows.lastcol + 1;
 
     std::cout << numRows << std::endl;
     std::cout << numCols << std::endl;
     std::cout << "------------<!: " << std::endl;
-    xlsRow *rowP = &activeWorkSheet->rows.row[0];
+
+    xlsRow *rowP = &_activeWorkSheet->rows.row[1];
     xlsCell	*cell = &rowP->cells.cell[0];
-    FormatCell(cell, content);
-    std::cout << content.str << std::endl;
+    _formatCell(cell, content);
+    std::cout << content.val.d << std::endl;
     //for (uint32_t t=0; t<numRows; t++) {
-        //xlsRow *rowP = &activeWorkSheet->rows.row[t];
+        //xlsRow *rowP = &_activeWorkSheet->rows.row[t];
         //for (uint32_t tt=0; tt<numCols; tt++){
             //xlsCell	*cell = &rowP->cells.cell[tt];
             //if(cell->row < row) break;
@@ -59,7 +60,7 @@ ExcelReader::ExcelReader(std::string filepath) : DataFileReader(filepath),
             //if(cell->id == 0x201) continue;
             
             //if(cell->col == col) {
-                //FormatCell(cell, content);
+                //_formatCell(cell, content);
                 //std::cout << content.str << std::endl;
                 ////return content;
                 //tt=numCols;
@@ -69,11 +70,11 @@ ExcelReader::ExcelReader(std::string filepath) : DataFileReader(filepath),
     //}
 }
 
-void ExcelReader::FormatCell(xlsCell *cell, cellContent& content) const
+void ExcelReader::_formatCell(xlsCell *cell, CellContent& content) const
 {
 	uint32_t col = cell->col;
 
-	content.str = char2string(cell->str);
+	content.str = _char2string(cell->str);
 	content.row = cell->row + 1;
 	
 	content.col = col + 1;
@@ -92,15 +93,17 @@ void ExcelReader::FormatCell(xlsCell *cell, cellContent& content) const
         if(cell->l == 0) {
 			content.type = cellFloat;
 			content.val.d = cell->d;
-		} else {
+		}
+        else {
 			if(!strcmp((char *)cell->str, "bool")) {
 				content.type = cellBool;
 				content.val.b = (bool)cell->d;
-			} else
-			if(!strcmp((char *)cell->str, "error")) {
+			}
+            else if(!strcmp((char *)cell->str, "error")) {
 				content.type = cellError;
 				content.val.e = (int32_t)cell->d;
-			} else {
+			}
+            else {
 				content.type = cellString;
 			}
 		}
@@ -121,33 +124,34 @@ void ExcelReader::FormatCell(xlsCell *cell, cellContent& content) const
     }
 }
 
-std::string ExcelReader::char2string(const uint8_t *ptr) const
+std::string ExcelReader::_char2string(const uint8_t *ptr) const
 {
 	return string((const char *)ptr);
 }
 
-void ExcelReader::OpenSheet(uint32_t sheetNum)
+void ExcelReader::_openSheet(uint32_t sheetNum)
 {	
-	if(sheetNum >= numSheets) {
+	if(sheetNum >= _numSheets) {
 		throw string("no such sheet exists!");
 	}
-    else if(sheetNum != activeWorkSheetID) {
-		activeWorkSheetID = sheetNum;
-		xls_close_WS(activeWorkSheet);
-		activeWorkSheet = xls_getWorkSheet(workBook, sheetNum);
-		xls_parseWorkSheet(activeWorkSheet);
+    else if(sheetNum != _activeWorkSheetID) {
+		_activeWorkSheetID = sheetNum;
+		xls_close_WS(_activeWorkSheet);
+		_activeWorkSheet = xls_getWorkSheet(_workBook, sheetNum);
+		xls_parseWorkSheet(_activeWorkSheet);
 	}
 }
 
-void ExcelReader::InitIterator(uint32_t sheetNum)
+void ExcelReader::_initIterator(uint32_t sheetNum)
 {
 	if(sheetNum != UINT32_MAX) {
-		OpenSheet(sheetNum);
-		iterating = true;
-		lastColIndex = 0;
-		lastRowIndex = 0;
-	} else {
-		iterating = false;
+		_openSheet(sheetNum);
+		_isIterating = true;
+		_lastColIndex = 0;
+		_lastRowIndex = 0;
+	}
+    else {
+		_isIterating = false;
 	}
 }
 
@@ -164,5 +168,6 @@ std::string * ExcelReader::parseLine()
 
 ExcelReader::~ExcelReader()
 {
-
+	xls_close_WS(_activeWorkSheet);
+	xls_close_WB(_workBook);	// handles nil parameter
 }

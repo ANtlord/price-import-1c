@@ -3,30 +3,32 @@
 #include "DataFileReader.h"
 #include <xls.h>
 
-typedef enum { cellBlank=0, cellString, cellInteger, cellFloat, cellBool, cellError, cellUnknown } contentsType;
-struct cellContent {
-    contentsType		type;
-    char				colStr[3];	// String "A"..."Z", "AA"..."ZZ" (second char is either nil or a capital letter)
-    uint32_t			col;		// 1 based
-    uint16_t			row;		// 1 based
-    std::string			str;		// even for numbers these values are formatted as well as provided below
-    union Val {
-        long			l;
-        double			d;
-        bool			b;
-        int32_t			e;
-        
-    Val(int x) { l = x; }
-    ~Val() { }
-    } val;
-    
-    cellContent(void) :
+enum ContentsType : uint8_t { cellBlank=0, cellString, cellInteger, cellFloat,
+    cellBool, cellError, cellUnknown };
+
+class CellContent {
+public:
+    CellContent() :
         type(cellBlank),
         colStr(),
         col(0),
         row(0),
         val(0) { }
-    ~cellContent() {}
+    ~CellContent() {}
+    ContentsType		type;
+    char				colStr[3];	// String "A"..."Z", "AA"..."ZZ" (second char is either nil or a capital letter)
+    uint32_t			col;		// 1 based
+    uint16_t			row;		// 1 based
+    std::string			str;		// even for numbers these values are formatted as well as provided below
+    union Val {
+        Val(int x) { l = x; }
+        ~Val() { }
+
+        long			l;
+        double			d;
+        bool			b;
+        int32_t			e;
+    } val;
 };
 
 class ExcelReader : public DataFileReader
@@ -37,20 +39,19 @@ public:
     std::string * parseLine() override;
     virtual ~ExcelReader();
 
-    // temp fields.
-    void FormatCell(xls::xlsCell *cell, cellContent& content) const;
-    void InitIterator(uint32_t sheetNum = UINT32_MAX);  // call this first...
-    void OpenSheet(uint32_t sheetNum);
-    xls::xlsWorkSheet * activeWorkSheet; // keep last one active
-    uint32_t numSheets = 0;
-    std::string char2string(const uint8_t *ptr) const;
-    uint32_t activeWorkSheetID;		// keep last one active
-    xls::xlsWorkBook* workBook;
-    bool iterating;
-    uint32_t			lastRowIndex;
-    uint32_t			lastColIndex;
-
 private:
+    void _openSheet(uint32_t sheetNum);
+    void _initIterator(uint32_t sheetNum = UINT32_MAX);  // call this first...
+    std::string _char2string(const uint8_t *ptr) const;
+
+    xls::xlsWorkSheet * _activeWorkSheet; // keep last one active
+    bool _isIterating;
+    void _formatCell(xls::xlsCell *cell, CellContent& content) const;
+    uint32_t _lastRowIndex;
+    uint32_t _lastColIndex;
+    uint32_t _activeWorkSheetID;		// keep last one active
+    xls::xlsWorkBook* _workBook;
+    uint32_t _numSheets = 0;
 };
 
 #endif //EXCELREADER_H
