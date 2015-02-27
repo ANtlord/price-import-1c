@@ -1,10 +1,10 @@
 #include "../include/ConfigSingleton.h"
 
-ConfigSingleton * ConfigSingleton::_self = 0;
+ConfigSingleton * ConfigSingleton::_self = nullptr;
 
 ConfigSingleton * ConfigSingleton::getSingleton()
 {
-    if (_self == 0)
+    if (_self == nullptr)
         _self = new ConfigSingleton();
     return _self;
 }
