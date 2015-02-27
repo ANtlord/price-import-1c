@@ -11,12 +11,11 @@ CSVreader::CSVreader(std::string filepath) : DataFileReader(filepath)
 std::string * CSVreader::parseLine()
 {
     std::string line;
-    std::vector<std::string> values;
-    std::string * resValues = new std::string[4];
+    _resValues = new std::string[4];
 
     while(readline(line)){
-        values = forge::split(line, ';');
-        auto res = _setAggregatedValues(values, resValues); 
+        _values = forge::split(line, ';');
+        auto res = _setAggregatedValues(); 
         if (res != nullptr) {
             return res; 
         }

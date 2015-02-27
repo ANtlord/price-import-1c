@@ -41,18 +41,6 @@ ExcelReader::ExcelReader(std::string filepath) : DataFileReader(filepath),
 	
 	uint32_t numRows = _activeWorkSheet->rows.lastrow + 1;
 	uint32_t numCols = _activeWorkSheet->rows.lastcol + 1;
-
-    std::cout << numRows << std::endl;
-    std::cout << numCols << std::endl;
-    std::cout << "------------<!: " << std::endl;
-
-    //xlsRow *rowP = &_activeWorkSheet->rows.row[9];
-    //xlsCell	*cell = &rowP->cells.cell[1];
-    //std::cout << rowP->fcell << std::endl;
-    //_formatCell(cell, content);
-
-    //rowP = &_activeWorkSheet->rows.row[8];
-    //std::cout << rowP->fcell << std::endl;
 }
 
 void ExcelReader::_formatCell(xlsCell *cell, CellContent& content) const
@@ -133,7 +121,7 @@ void ExcelReader::_initIterator(uint32_t sheetNum)
 		_openSheet(sheetNum);
 		_isIterating = true;
 		_lastColIndex = 0;
-		_lastRowIndex = 0;
+		_lastRowIndex = 10;
 	}
     else {
 		_isIterating = false;
@@ -147,31 +135,30 @@ bool ExcelReader::readline(std::string &buffer)
 
 std::string * ExcelReader::parseLine()
 {
-    string * resValues = new string[4];
-    vector<std::string> values;
-
 	CellContent content;
 	uint32_t numRows = _activeWorkSheet->rows.lastrow + 1;
 	uint32_t numCols = _activeWorkSheet->rows.lastcol + 1;
+    _resValues = new std::string[4];
 
 	for (uint32_t t=_lastRowIndex; t<numRows; t++) {
 		xlsRow *rowP = &_activeWorkSheet->rows.row[t];
 
-        values.clear();
+        _values.clear();
 		for (uint32_t tt=rowP->fcell; tt<rowP->lcell; tt++) {
 			xlsCell	*cell = &rowP->cells.cell[tt];
 
             if(cell->id != 0x201 && cell->isHidden == 0) {
                 _formatCell(cell, content);
-                values.push_back(content.str);
+                _values.push_back(content.str);
             }
         }
-        auto res = _setAggregatedValues(values, resValues); 
+        auto res = _setAggregatedValues(); 
         if (res != nullptr) {
             return res; 
         }
-        ++_lastColIndex;
+        ++_lastRowIndex;
     }
+    _lastRowIndex = 10;
     _sectionName = "";
     return nullptr;
 }
