@@ -1,6 +1,7 @@
 #ifndef DATAFILEREADER_H
 #define DATAFILEREADER_H
 #include <fstream>
+#include <vector>
 
 class DataFileReader
 {
@@ -11,6 +12,8 @@ public:
     virtual std::string * parseLine() = 0;
 
 protected:
+    std::string * _setAggregatedValues(std::vector<std::string>& values, std::string * resValues);
+
     std::string _filepath;
     std::ifstream * _filestream;
     bool _isOpen;

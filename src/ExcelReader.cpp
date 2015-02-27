@@ -1,8 +1,12 @@
 #include "../include/ExcelReader.h"
 #include <string.h>
+#include <vector>
 #include <iostream>
+
 using std::string;
+using std::vector;
 using namespace xls;
+
 ExcelReader::ExcelReader(std::string filepath) : DataFileReader(filepath),
     _activeWorkSheet(nullptr),
 	_activeWorkSheetID(-1),
@@ -42,32 +46,13 @@ ExcelReader::ExcelReader(std::string filepath) : DataFileReader(filepath),
     std::cout << numCols << std::endl;
     std::cout << "------------<!: " << std::endl;
 
-    xlsRow *rowP = &_activeWorkSheet->rows.row[1];
-    xlsCell	*cell = &rowP->cells.cell[0];
-    _formatCell(cell, content);
-    std::cout << content.val.d << std::endl;
-    //for (uint32_t t=0; t<numRows; t++) {
-        //xlsRow *rowP = &_activeWorkSheet->rows.row[t];
-        //for (uint32_t tt=0; tt<numCols; tt++){
-            //xlsCell	*cell = &rowP->cells.cell[tt];
-            //if(cell->row < row) break;
-            //if(cell->row > row) {
-                //std::cout << content.str << std::endl;
-                //tt=numCols;
-                //t=numRows;
-            //} 
-            
-            //if(cell->id == 0x201) continue;
-            
-            //if(cell->col == col) {
-                //_formatCell(cell, content);
-                //std::cout << content.str << std::endl;
-                ////return content;
-                //tt=numCols;
-                //t=numRows;
-            //}
-        //}
-    //}
+    //xlsRow *rowP = &_activeWorkSheet->rows.row[9];
+    //xlsCell	*cell = &rowP->cells.cell[1];
+    //std::cout << rowP->fcell << std::endl;
+    //_formatCell(cell, content);
+
+    //rowP = &_activeWorkSheet->rows.row[8];
+    //std::cout << rowP->fcell << std::endl;
 }
 
 void ExcelReader::_formatCell(xlsCell *cell, CellContent& content) const
@@ -162,8 +147,61 @@ bool ExcelReader::readline(std::string &buffer)
 
 std::string * ExcelReader::parseLine()
 {
-    string * qwe = new string();
-    return qwe;
+    string * resValues = new string[4];
+    vector<std::string> values;
+
+	CellContent content;
+	uint32_t numRows = _activeWorkSheet->rows.lastrow + 1;
+	uint32_t numCols = _activeWorkSheet->rows.lastcol + 1;
+
+	for (uint32_t t=_lastRowIndex; t<numRows; t++) {
+		xlsRow *rowP = &_activeWorkSheet->rows.row[t];
+
+        values.clear();
+		for (uint32_t tt=rowP->fcell; tt<rowP->lcell; tt++) {
+			xlsCell	*cell = &rowP->cells.cell[tt];
+
+            if(cell->id != 0x201 && cell->isHidden == 0) {
+                _formatCell(cell, content);
+                values.push_back(content.str);
+            }
+        }
+        auto res = _setAggregatedValues(values, resValues); 
+        if (res != nullptr) {
+            return res; 
+        }
+        ++_lastColIndex;
+    }
+    _sectionName = "";
+    return nullptr;
+}
+
+CellContent ExcelReader::getNextCell()
+{
+	CellContent content;
+
+	if(!_isIterating) throw string("asked for the next cell, but not iterating!");
+	
+	uint32_t numRows = _activeWorkSheet->rows.lastrow + 1;
+	uint32_t numCols = _activeWorkSheet->rows.lastcol + 1;
+
+	if (_lastRowIndex >= numRows) return content;
+
+	for (uint32_t t=_lastRowIndex; t<numRows; t++) {
+		xlsRow *rowP = &_activeWorkSheet->rows.row[t];
+		for (uint32_t tt=_lastColIndex; tt<numCols; tt++) {
+			xlsCell	*cell = &rowP->cells.cell[tt];
+
+			if(cell->id == 0x201) continue;
+			_lastColIndex = tt + 1;
+			_formatCell(cell, content);
+			return content;
+		}
+		++_lastRowIndex;
+		_lastColIndex = 0;
+	}
+	// don't make iterator false - user can keep asking for cells, they all just be blank ones though
+	return content;
 }
 
 ExcelReader::~ExcelReader()

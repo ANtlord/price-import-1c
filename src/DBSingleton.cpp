@@ -42,7 +42,8 @@ std::list<std::vector<string>> DBSingleton::getTableData(string tableName,
     if (fields != 0 || fieldsSize != 0) assert(fieldsSize > 0 && fields != 0);
     pqxx::work w(*this->getConnection());
     string queryString = "select " + ((fields == 0) ? "*" : forge::join(fields,
-                fieldsSize, ",")) + " from " + tableName;
+                fieldsSize, ",")) + " from " + tableName
+        + " where section_id = " + ConfigSingleton::getSingleton()->getOption("company_id");
     pqxx::result res = w.exec(queryString);
 
     // Parses data.
@@ -69,7 +70,7 @@ bool DBSingleton::checkEntry(const string &tableName, const string &fieldName,
         res = w.exec(query);
     }
     catch (pqxx::data_exception &e) {
-        std::cout << "Error query: " << query << std::endl;
+        printf("Error query: %s", query.c_str());
         return false;
     }
     if (res.size() != 1) {

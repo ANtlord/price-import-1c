@@ -38,6 +38,7 @@ public:
     bool readline(std::string &buffer) override;
     std::string * parseLine() override;
     virtual ~ExcelReader();
+    CellContent getNextCell();
 
 private:
     void _openSheet(uint32_t sheetNum);

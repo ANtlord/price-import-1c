@@ -33,7 +33,6 @@ int main(int argc, char *argv[])
     else if (EXTENSION == "xls" || EXTENSION == "xlsx")
         reader = new ExcelReader(filepath);
     assert(reader != nullptr);  // Extension is not supporting.
-    return 0;
 
     // Initializing reader of file.
     std::string * resValues;
@@ -48,7 +47,7 @@ int main(int argc, char *argv[])
             fields, N, "name");
 
     // Parsing and saving categories.
-    while ((resValues = reader->parseLine()) != 0) {
+    while ((resValues = reader->parseLine()) != nullptr) {
         if (categoryName != resValues[3]) {
             categoryName = resValues[3];
             std::string * data = new std::string[N]{
@@ -79,7 +78,7 @@ int main(int argc, char *argv[])
     // Parsing and saving products.
     std::string categoryId = "";
     categoryName = "";
-    while ((resValues = reader->parseLine()) != 0) {
+    while ((resValues = reader->parseLine()) != nullptr) {
         if (categoryName != resValues[3]) {
             categoryName = resValues[3];
 
