@@ -21,6 +21,7 @@ public:
     bool execute() const;
     void addData(std::string data[]);
     void clearData();
+    const std::list <std::string*> * getData() const;
 
 private:
     std::list <std::string *> _data;

@@ -4,3 +4,6 @@
 [submodule "vendor/libxls"]
 	path = vendor/libxls
 	url = git@github.com:ANtlord/libxls.git
+[submodule "vendor/cxxtest"]
+	path = vendor/cxxtest
+	url = https://github.com/CxxTest/cxxtest.git

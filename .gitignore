@@ -2,3 +2,8 @@
 *.pyc
 a.out
 *.csv
+
+unittests/runner.cpp
+
+runner
+price-import
