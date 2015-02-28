@@ -23,24 +23,12 @@ ExcelReader::ExcelReader(std::string filepath) : DataFileReader(filepath),
 		throw std::string("failed to open the requested file!");
 	}
     uint32_t workSheetIndex = 0;
-    uint16_t row = 0;
-    uint16_t col = 0;
     uint32_t sheetNum = 0;
     _activeWorkSheet = xls::xls_getWorkSheet(_workBook, sheetNum);
     xls::xls_parseWorkSheet(_activeWorkSheet);
 
-    CellContent content;
-	
-	//assert(row && col);
-
 	_initIterator();
-	
 	_openSheet(workSheetIndex);
-	
-    --row, --col;
-	
-	uint32_t numRows = _activeWorkSheet->rows.lastrow + 1;
-	uint32_t numCols = _activeWorkSheet->rows.lastcol + 1;
 }
 
 void ExcelReader::_formatCell(xlsCell *cell, CellContent& content) const
@@ -121,7 +109,7 @@ void ExcelReader::_initIterator(uint32_t sheetNum)
 		_openSheet(sheetNum);
 		_isIterating = true;
 		_lastColIndex = 0;
-		_lastRowIndex = 10;
+		_lastRowIndex = 0;
 	}
     else {
 		_isIterating = false;
@@ -137,7 +125,6 @@ std::string * ExcelReader::parseLine()
 {
 	CellContent content;
 	uint32_t numRows = _activeWorkSheet->rows.lastrow + 1;
-	uint32_t numCols = _activeWorkSheet->rows.lastcol + 1;
     _resValues = new std::string[4];
 
 	for (uint32_t t=_lastRowIndex; t<numRows; t++) {
@@ -158,7 +145,7 @@ std::string * ExcelReader::parseLine()
         }
         ++_lastRowIndex;
     }
-    _lastRowIndex = 10;
+    _lastRowIndex = 0;
     _sectionName = "";
     return nullptr;
 }
