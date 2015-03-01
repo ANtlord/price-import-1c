@@ -14,8 +14,8 @@ DBSingleton * DBSingleton::_self = nullptr;
 DBSingleton::DBSingleton()
 {
     auto config = ConfigSingleton::getSingleton();
-    _connection = new pqxx::connection("dbname="+config->getOption("db_name")
-            +" user="+config->getOption("db_user"));
+    _connection = new pqxx::connection("dbname="+config->getOption(Options::DB_NAME)
+            +" user="+config->getOption(Options::DB_USER));
 }
 
 DBSingleton * DBSingleton::getSingleton()
@@ -43,7 +43,7 @@ std::list<std::vector<string>> DBSingleton::getTableData(string tableName,
     pqxx::work w(*this->getConnection());
     string queryString = "select " + ((fields == 0) ? "*" : forge::join(fields,
                 fieldsSize, ",")) + " from " + tableName
-        + " where section_id = " + ConfigSingleton::getSingleton()->getOption("company_id");
+        + " where section_id = " + ConfigSingleton::getSingleton()->getOption(Options::COMPANY_ID);
     pqxx::result res = w.exec(queryString);
 
     // Parses data.
@@ -160,18 +160,18 @@ std::string DBSingleton::_generateCondition(const std::string &tableName,
     std::string res;
     const bool FLAG = (type == SELECT);
 
-    if (config->getOption("product_table") == tableName){
+    if (config->getOption(Options::PRODUCT_TABLE) == tableName){
         res = (FLAG) ? " left join " : " from ";
-        res += config->getOption("category_table")+" as t2"
+        res += config->getOption(Options::CATEGORY_TABLE)+" as t2"
             + ((FLAG) ? " on" : " where")
             +" t1.section_id = t2.id";
     }
     res += string((FLAG) ? " where" : " and")+" t1."+keyField+" = "+w.quote(keyValue)
         +" and ";
 
-    if (config->getOption("product_table") == tableName) res += "t2";
+    if (config->getOption(Options::PRODUCT_TABLE) == tableName) res += "t2";
     else res += "t1";
 
-    res += ".section_id = " + config->getOption("company_id");
+    res += ".section_id = " + config->getOption(Options::COMPANY_ID);
     return res;
 }

@@ -36,7 +36,11 @@ $(TARGET): $(OBJECTS)
 clean:
 	rm $(OBJECTS)
 
-unittest: $(TEST_OBJECTS)
+build_unittest: $(TEST_OBJECTS)
 	./vendor/cxxtest/bin/cxxtestgen --error-printer -o unittests/runner.cpp unittests/*.h
+	$(CC) -o runner unittests/runner.cpp $(TEST_OBJECTS) $(VENDOR_HEADERS) $(VENDOR_LIBS)
+	./runner
+
+unittest:
 	$(CC) -o runner unittests/runner.cpp $(TEST_OBJECTS) $(VENDOR_HEADERS) $(VENDOR_LIBS)
 	./runner

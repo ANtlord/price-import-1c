@@ -9,6 +9,7 @@
 
 using std::string;
 using pqxx::work;
+using pqxx::result;
 
 class SaveCommandTestSuite : public CxxTest::TestSuite
 {
@@ -37,11 +38,11 @@ public:
     SaveCommandTestSuite()
     {
         ConfigSingleton::getSingleton()
-            ->addOption("company_id", "1")
-            ->addOption("db_name", "test_base_price_import")
-            ->addOption("db_user", "postgres")
-            ->addOption("product_table", _PRODUCT_TABLE_NAME)
-            ->addOption("category_table", _CATEGORY_TABLE_NAME);
+            ->addOption(Options::COMPANY_ID, "1")
+            ->addOption(Options::DB_NAME, "test_base_price_import")
+            ->addOption(Options::DB_USER, "postgres")
+            ->addOption(Options::PRODUCT_TABLE, _PRODUCT_TABLE_NAME)
+            ->addOption(Options::CATEGORY_TABLE, _CATEGORY_TABLE_NAME);
     }
 
     ~SaveCommandTestSuite()
@@ -99,19 +100,20 @@ public:
 
     void testExecute()
     {
-        auto cmd = _buildCmd(_INDUSTRY_TABLE_NAME, new string[3]{"name",
-                "sort", "is_active"}, 3);
-        auto data = new string[_N]{"pen", "300", "true"};
-        cmd.addData(data);
+        work w(*(DBSingleton::getSingleton()->getConnection()));
+        result res = w.exec("select count(1) from "+_INDUSTRY_TABLE_NAME);
+        w.commit();
+        uint64_t count = res.begin().begin().as<uint64_t>();
+
+        uint8_t N = 3;
+        auto cmd = _buildCmd(_INDUSTRY_TABLE_NAME, new string[N]{"name",
+                 "sort", "is_active"}, N);
+        cmd.addData(new string[N]{"super_ind", "300", "true"});
         cmd.execute();
 
-        auto db = DBSingleton::getSingleton();
-        std::list<std::vector<std::string>> sections = db->getTableData(
-                _INDUSTRY_TABLE_NAME, new string[2]{"id", "name"}, 2);
-
-        TS_ASSERT_EQUALS(sections.size(), 1);
-        for (auto it = sections.begin(); it != sections.end(); ++it) {
-            TS_ASSERT_EQUALS("'"+it->at(1)+"'", data[0]);
-        }
+        work w2(*(DBSingleton::getSingleton()->getConnection()));
+        res = w2.exec("select count(1) from "+_INDUSTRY_TABLE_NAME);
+        w2.commit();
+        TS_ASSERT_EQUALS(res.begin().begin().as<uint64_t>(), count+1);
     }
 };

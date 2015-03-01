@@ -11,16 +11,17 @@ int main(int argc, char *argv[])
     const std::string CATEGORY_TABLE_NAME = "service_category";
     const std::string PRODUCT_TABLE_NAME = "service_product";
     const std::string COMPANY_TABLE_NAME = "service_company";
+    const std::string COMPANY_ID = std::string(argv[2]);
 
     assert(argc > 3);   // Specifying filepath is required.
 
     // Saving options of the programm.
     ConfigSingleton::getSingleton()
-        ->addOption("company_id", std::string(argv[2]))
-        ->addOption("db_name", "maindb_test")
-        ->addOption("db_user", "postgres")
-        ->addOption("product_table", PRODUCT_TABLE_NAME)
-        ->addOption("category_table", CATEGORY_TABLE_NAME);
+        ->addOption(Options::COMPANY_ID, COMPANY_ID)
+        ->addOption(Options::DB_NAME, "maindb_test")
+        ->addOption(Options::DB_USER, "postgres")
+        ->addOption(Options::PRODUCT_TABLE, PRODUCT_TABLE_NAME)
+        ->addOption(Options::CATEGORY_TABLE, CATEGORY_TABLE_NAME);
 
     std::cout << "file: " << argv[1] << std::endl;
     std::cout << "company ID: " << argv[2] << std::endl;

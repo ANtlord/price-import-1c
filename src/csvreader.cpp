@@ -43,7 +43,6 @@ bool CSVreader::readline(std::string &buffer){
         _isOpen = false;
         return false;
     }
-    printf("zxc\n");
 }
 
 CSVreader::~CSVreader()

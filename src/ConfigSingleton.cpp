@@ -11,21 +11,19 @@ ConfigSingleton * ConfigSingleton::getSingleton()
 
 ConfigSingleton::ConfigSingleton ()
 {
-
 }
 
 ConfigSingleton::~ConfigSingleton ()
 {
-
 }
 
-ConfigSingleton * ConfigSingleton::addOption(const std::string &key, const std::string &value)
+ConfigSingleton * ConfigSingleton::addOption(Options key, const std::string &value)
 {
     _data[key]=value;
     return this;
 }
 
-const std::string &ConfigSingleton::getOption(const std::string &key) const
+const std::string &ConfigSingleton::getOption(Options key) const
 {
     return _data.at(key);
 }
