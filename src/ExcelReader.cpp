@@ -150,6 +150,7 @@ std::string * ExcelReader::parseLine()
     return nullptr;
 }
 
+/*
 CellContent ExcelReader::getNextCell()
 {
 	CellContent content;
@@ -177,6 +178,7 @@ CellContent ExcelReader::getNextCell()
 	// don't make iterator false - user can keep asking for cells, they all just be blank ones though
 	return content;
 }
+*/
 
 ExcelReader::~ExcelReader()
 {
