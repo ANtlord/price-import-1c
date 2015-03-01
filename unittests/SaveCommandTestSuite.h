@@ -103,7 +103,7 @@ public:
         work w(*(DBSingleton::getSingleton()->getConnection()));
         result res = w.exec("select count(1) from "+_INDUSTRY_TABLE_NAME);
         w.commit();
-        uint64_t count = res.begin().begin().as<uint64_t>();
+        uint64_t count = res[0][0].as<uint64_t>();
 
         uint8_t N = 3;
         auto cmd = _buildCmd(_INDUSTRY_TABLE_NAME, new string[N]{"name",
@@ -114,6 +114,6 @@ public:
         work w2(*(DBSingleton::getSingleton()->getConnection()));
         res = w2.exec("select count(1) from "+_INDUSTRY_TABLE_NAME);
         w2.commit();
-        TS_ASSERT_EQUALS(res.begin().begin().as<uint64_t>(), count+1);
+        TS_ASSERT_EQUALS(res[0][0].as<uint64_t>(), count+1);
     }
 };

@@ -12,7 +12,6 @@ public:
     void testAdditionValues()
     {
         auto conf = ConfigSingleton::getSingleton();
-        std::cout << conf << std::endl;
         conf->addOption(Options::COMPANY_ID, "1");
         TS_ASSERT_EQUALS(conf->getOption(Options::COMPANY_ID), "1");
     }
