@@ -1,3 +1,6 @@
+#ifndef DBSINGLETON_H
+#define DBSINGLETON_H
+
 #include <pqxx/pqxx>
 #include <list>
 #include <vector>
@@ -84,3 +87,4 @@ private:
     static DBSingleton * _self;
     pqxx::connection * _connection;
 };
+#endif //DBSINGLETON_H

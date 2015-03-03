@@ -15,6 +15,7 @@ OBJ_DIR=obj/Release/
 vpath %.o $(OBJ_DIR)
 OBJECTS=$(addprefix $(OBJ_DIR), $(SOURCES:%.cpp=%.o))
 TEST_OBJECTS=$(addprefix $(OBJ_DIR), $(TEST_SOURCES:%.cpp=%.o))
+UNIT_FILES=unittests/*.h
 
 $(OBJ_DIR)%.o: %.cpp
 	$(CC) -c -o $@ $< $(VENDOR_LIBS) $(VENDOR_HEADERS)
@@ -36,11 +37,8 @@ $(TARGET): $(OBJECTS)
 clean:
 	rm $(OBJECTS)
 
-build_unittest: $(TEST_OBJECTS)
-	./vendor/cxxtest/bin/cxxtestgen --error-printer -o unittests/runner.cpp unittests/*.h
-	$(CC) -o runner unittests/runner.cpp $(TEST_OBJECTS) $(VENDOR_HEADERS) $(VENDOR_LIBS)
-	./runner
 
-unittest:
+test: $(TEST_OBJECTS)
+	./vendor/cxxtest/bin/cxxtestgen --error-printer -o unittests/runner.cpp $(UNIT_FILES)
 	$(CC) -o runner unittests/runner.cpp $(TEST_OBJECTS) $(VENDOR_HEADERS) $(VENDOR_LIBS)
 	./runner
