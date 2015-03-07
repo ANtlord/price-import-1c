@@ -89,14 +89,14 @@ bool DBSingleton::updateEntry(const std::string &tableName,
         const std::string &keyFieldName, pqxx::work &w, size_t keyFieldIdx) const
 {
     if (fieldsNum > 1) {   // If we have another fields, except key field.
-        if (keyFieldIdx == 0) {
+        if (keyFieldIdx == SIZE_MAX) {
             // Computes index of key field.
             keyFieldIdx = forge::findFirst<std::string>(
                     [&keyFieldName](const std::string &v) -> bool {
                     return v == keyFieldName;}, fields, fieldsNum);
         } 
 
-        if (keyFieldIdx != 0) {
+        if (keyFieldIdx != SIZE_MAX && keyFieldIdx < fieldsNum) {
             std::string arr[fieldsNum-1];
             size_t index;
             for (size_t i = 0; i < fieldsNum-1; ++i) {
@@ -109,11 +109,20 @@ bool DBSingleton::updateEntry(const std::string &tableName,
                         values[keyFieldIdx], w, UPDATE);
             try {
                 w.exec(query);
+                return true;
             }
             catch (pqxx::data_exception &e) {
                 std::cout << "Error query in update: " << query << std::endl;
+                return false;
             }
-            return true;
+            catch (pqxx::undefined_column &e) {
+                std::cout << "Error query in update: " << query << std::endl;
+                return false;
+            }
+            catch (pqxx::usage_error &e) {
+                std::cout << "Error query in update: " << query << std::endl;
+                return false;
+            }
         }
         else {
             return false;
@@ -126,28 +135,36 @@ bool DBSingleton::insertEntry(const std::string &tableName,
         const std::string fields[], const std::list<std::string *> &values,
         const size_t fieldsNum, pqxx::work &w)
 {
-    std::string queryString = "insert into "+tableName+" ";
-    queryString += ("("+forge::join(fields, fieldsNum, ", ")+") values ");
+    std::string query = "insert into "+tableName+" ";
+    query += ("("+forge::join(fields, fieldsNum, ", ")+") values ");
     if (values.size() > 0) {
         size_t i=0;
 
         for (auto it: values) {
             forge::each<std::string>([&w](std::string &item){
                     item = w.quote(item);}, it, fieldsNum);
-            queryString += ("("+forge::join(it, fieldsNum, ", ")+")");
+            query += ("("+forge::join(it, fieldsNum, ", ")+")");
             if (i < values.size()-1) {
-                queryString += ",";
+                query += ",";
             }
             ++i;
         }
         try {
-            w.exec(queryString);
+            w.exec(query);
+            return true;
         }
         catch (pqxx::data_exception &e) {
-            std::cout << "Error query: " << queryString << std::endl;
+            std::cout << "Error query in insert: " << query << std::endl;
             return false;
         }
-        return true;
+        catch (pqxx::undefined_column &e) {
+            std::cout << "Error query in insert: " << query << std::endl;
+            return false;
+        }
+        catch (pqxx::usage_error &e) {
+            std::cout << "Error query in insert: " << query << std::endl;
+            return false;
+        }
     }
     return false;
 }
@@ -166,8 +183,15 @@ std::string DBSingleton::_generateCondition(const std::string &tableName,
             + ((FLAG) ? " on" : " where")
             +" t1.section_id = t2.id";
     }
-    res += string((FLAG) ? " where" : " and")+" t1."+keyField+" = "+w.quote(keyValue)
-        +" and ";
+
+    if (res.find("where") == string::npos) {
+        res += string(" where") + " t1."+keyField+" = "
+            + w.quote(keyValue) +" and ";
+    }
+    else {
+        res += string((FLAG) ? " where" : " and")+" t1."+keyField+" = "
+            + w.quote(keyValue) +" and ";
+    }
 
     if (config->getOption(Options::PRODUCT_TABLE) == tableName) res += "t2";
     else res += "t1";

@@ -49,7 +49,7 @@ public:
     bool updateEntry(const std::string &tableName, const std::string fields[],
             const std::string values[], size_t fieldsNum,
             const std::string &keyFieldName, pqxx::work &w,
-            size_t keyFieldIdx = 0) const;
+            size_t keyFieldIdx = SIZE_MAX) const;
 
     //! Method inserts an entry.
     /*!
