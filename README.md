@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/ANtlord/price-import-1c.svg?branch=coverage)](https://travis-ci.org/ANtlord/price-import-1c)
 Price import
 ===========
 
@@ -6,4 +7,9 @@ depencies create "vendor" folder and download them to this folder.
 
 Depencies
 -
-`git submodule update --init`
+* `git submodule update --init`
+* libpqxx — http://pqxx.org/development/libpqxx/
+
+Documentation
+-
+Documentation is not ready. You can take a look on unit tests for getting some image about usage application.

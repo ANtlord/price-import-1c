@@ -3,7 +3,13 @@
 a.out
 *.csv
 
-unittests/runner.cpp
+# coverage
+*.gcov
+*.gcda
+*.gcno
 
+# cxxtest files
+unittests/runner.cpp
 runner
-price-import
+
+main

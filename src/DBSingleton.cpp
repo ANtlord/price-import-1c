@@ -91,10 +91,10 @@ bool DBSingleton::updateEntry(const std::string &tableName,
     if (fieldsNum > 1) {   // If we have another fields, except key field.
         if (keyFieldIdx == SIZE_MAX) {
             // Computes index of key field.
-            keyFieldIdx = forge::findFirst<std::string>(
-                    [&keyFieldName](const std::string &v) -> bool {
-                    return v == keyFieldName;}, fields, fieldsNum);
-        } 
+            uint32_t i=0;
+            while (i < fieldsNum && keyFieldName != fields[i]) ++i;
+            keyFieldIdx = i;
+        }
 
         if (keyFieldIdx != SIZE_MAX && keyFieldIdx < fieldsNum) {
             std::string arr[fieldsNum-1];
@@ -125,6 +125,7 @@ bool DBSingleton::updateEntry(const std::string &tableName,
             }
         }
         else {
+            std::cout << "update else before end of the line" << std::endl;
             return false;
         }
     }

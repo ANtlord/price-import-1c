@@ -189,34 +189,41 @@ public:
         res = w.exec("select count(1) from "+_PRODUCT_TABLE_NAME +" where code = "
                 +w.quote(values[1]) + " and section_id = "+categoryId);
         TS_ASSERT_EQUALS(res[0][0].as<string>(), "1");
+        w.commit();
 
         // Tests incorrect keyfield
+        work w5(*dbs->getConnection());
         flag = dbs->updateEntry(_PRODUCT_TABLE_NAME, new string[N]{"name", "code"},
-                new string[N]{"qweasd", values[1]}, N, "fake_field", w);
+                new string[N]{"qweasd", values[1]}, N, "fake_field", w5);
         TS_ASSERT_EQUALS(flag, false);
+        std::cout << "end of the line" << std::endl;
+        w5.commit();
 
+        // This is not correct test, because entry with code, which equals fake_value. 
+        work w6(*dbs->getConnection());
         flag = dbs->updateEntry(_PRODUCT_TABLE_NAME, new string[N]{"name", "code"},
-                new string[N]{"qweasd", values[1]}, N, "fake_field", w);
-        TS_ASSERT_EQUALS(flag, false);
+                new string[N]{"qweasd", "fake_value"}, N, "code", w6);
+        TS_ASSERT_EQUALS(flag, true);
+        w6.commit();
 
         // Tests incorrect fieldsNum.
+        work w2(*dbs->getConnection());
         flag = dbs->updateEntry(_PRODUCT_TABLE_NAME, new string[N]{"name", "code"},
-                new string[N]{"qweasd", values[1]}, 0, "fake_field", w);
+                new string[N]{"qweasd", values[1]}, 0, "fake_field", w2);
         TS_ASSERT_EQUALS(flag, false);
+
         flag = dbs->updateEntry(_PRODUCT_TABLE_NAME, new string[N]{"name", "code"},
-                new string[N]{"qweasd", values[1]}, 1, "fake_field", w);
+                new string[N]{"qweasd", values[1]}, 1, "fake_field", w2);
         TS_ASSERT_EQUALS(flag, false);
 
         // checking database values.
-        res = w.exec("select count(1) from "+_PRODUCT_TABLE_NAME +" where code = "
-                +w.quote(values[1]) + " and section_id = "+categoryId);
+        res = w2.exec("select count(1) from "+_PRODUCT_TABLE_NAME +" where code = "
+                +w2.quote(values[1]) + " and section_id = "+categoryId);
         TS_ASSERT_EQUALS(res[0][0].as<string>(), "1");
-        w.commit();
 
         // Tests throwing of transaction by incorrect key field. NOTICE: if
         // transaction will throw, than it will not be used. Therefore I create
         // another transaction.
-        work w2(*dbs->getConnection());
         flag = dbs->updateEntry(_PRODUCT_TABLE_NAME, new string[N]{"name", "fake_field"},
                 new string[N]{"qweasd", values[1]}, 2, "fake_field", w2);
         TS_ASSERT_EQUALS(flag, false);
