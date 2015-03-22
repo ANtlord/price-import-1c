@@ -1,4 +1,3 @@
-[![Build Status](https://travis-ci.org/ANtlord/price-import-1c.svg?branch=coverage)](https://travis-ci.org/ANtlord/price-import-1c)
 Price import
 ===========
 
