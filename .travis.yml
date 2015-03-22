@@ -1,0 +1,31 @@
+language: cpp
+compiler: gcc
+addons:
+  - postgresql: "9.3"
+  - python: "3.3"
+    
+before_install:
+  - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+  - sudo apt-get update -qq
+
+install:
+  - sudo apt-get install -qq libpqxx3-dev gcc-4.8 g++-4.8
+  - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 90
+  - sudo pip install cpp-coveralls
+  - cd ./vendor/libxls/libxls/
+  - ./bootstrap
+  - ./configure --prefix=`pwd`/build
+  - make && make install
+  - cd -
+  - cd ./vendor/forge && make lib && cd -
+
+before_script:
+  - psql -c 'create database test_base_price_import;' -U postgres
+  - psql test_base_price_import -U postgres < ./unittests/test_dump.sql
+
+script:
+  - make test
+
+after_success:
+  - make clean
+  - make coverage
