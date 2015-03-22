@@ -1,3 +1,4 @@
+[![Coverage Status](https://coveralls.io/repos/ANtlord/price-import-1c/badge.svg?branch=master)](https://coveralls.io/r/ANtlord/price-import-1c?branch=master) [![Build Status](https://travis-ci.org/ANtlord/price-import-1c.svg?branch=coverage)](https://travis-ci.org/ANtlord/price-import-1c)
 Price import
 ===========
 
@@ -8,6 +9,10 @@ Depencies
 -
 * `git submodule update --init`
 * libpqxx — http://pqxx.org/development/libpqxx/
+* g++ >= 4.8
+* gcov >= 4.8
+
+Also you can see more detail information in .travis.yml
 
 Documentation
 -
