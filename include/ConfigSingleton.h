@@ -1,19 +1,28 @@
 #ifndef CONFIGSINGLETON_H
 #define CONFIGSINGLETON_H
-#include <map>
 #include <string>
+#include <array>
+
+enum Options : uint8_t {
+    COMPANY_ID = 0,
+    DB_NAME = 1,
+    DB_USER = 2,
+    PRODUCT_TABLE = 3,
+    CATEGORY_TABLE = 4
+};
 
 class ConfigSingleton
 {
 public:
+    
     static ConfigSingleton * getSingleton();
-    virtual ~ConfigSingleton ();
-    ConfigSingleton * addOption(const std::string &key, const std::string &value);
-    const std::string &getOption(const std::string &key) const;
+    ConfigSingleton * addOption(Options key, const std::string &value);
+    const std::string &getOption(Options key) const;
 
 private:
+    std::array<std::string, 5 /* Options length */> _data;
     static ConfigSingleton * _self;
     ConfigSingleton();
-    std::map<std::string, std::string> _data;
+    virtual ~ConfigSingleton ();
 };
 #endif //CONFIGSINGLETON_H

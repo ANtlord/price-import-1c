@@ -1,5 +1,15 @@
 *.o
-vendor/*
 *.pyc
 a.out
 *.csv
+
+# coverage
+*.gcov
+*.gcda
+*.gcno
+
+# cxxtest files
+unittests/runner.cpp
+runner
+
+main

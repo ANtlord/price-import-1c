@@ -1,3 +1,6 @@
+#ifndef DBSINGLETON_H
+#define DBSINGLETON_H
+
 #include <pqxx/pqxx>
 #include <list>
 #include <vector>
@@ -46,7 +49,7 @@ public:
     bool updateEntry(const std::string &tableName, const std::string fields[],
             const std::string values[], size_t fieldsNum,
             const std::string &keyFieldName, pqxx::work &w,
-            size_t keyFieldIdx = 0) const;
+            size_t keyFieldIdx = SIZE_MAX) const;
 
     //! Method inserts an entry.
     /*!
@@ -65,20 +68,23 @@ public:
 
 
 private:
-    ///
-    /// \brief Method for getting condition. This condition helps to work
-    /// with entries of pointed company.
-    /// \param tableName - name of table of the target entry.
-    /// \param keyField - name of field, which will be used in search.
-    /// \param value - value for search.
-    /// \return condition as string.
-    ///
+    enum QueryType : uint8_t { SELECT=0, UPDATE=1 };
+    /*!
+      Method for getting condition. This condition helps to work with entries
+      of pointed company.
+
+      \param tableName - name of table of the target entry.
+      \param keyField - name of field, which will be used in search.
+      \param value - value for search.
+      \return condition as string.
+    */
     std::string _generateCondition(const std::string &tableName,
             const std::string &keyField, const std::string &keyValue,
-            pqxx::work &w) const;
+            pqxx::work &w, const QueryType type) const;
 
     DBSingleton();
     virtual ~DBSingleton ();
     static DBSingleton * _self;
     pqxx::connection * _connection;
 };
+#endif //DBSINGLETON_H

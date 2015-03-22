@@ -1,0 +1,9 @@
+[submodule "vendor/forge"]
+	path = vendor/forge
+	url = https://github.com/ANtlord/Forge.git
+[submodule "vendor/libxls"]
+	path = vendor/libxls
+	url = https://github.com/ANtlord/libxls.git
+[submodule "vendor/cxxtest"]
+	path = vendor/cxxtest
+	url = https://github.com/CxxTest/cxxtest.git
