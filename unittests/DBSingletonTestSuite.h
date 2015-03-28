@@ -259,7 +259,7 @@ public:
         std::list<string*> values;
         values.push_back(ind1Values);
         values.push_back(ind2Values);
-        bool flag = dbs->insertEntry(_INDUSTRY_TABLE_NAME, fields, values, N, w);
+        bool flag = dbs->insertEntryList(_INDUSTRY_TABLE_NAME, fields, values, N, w);
         TS_ASSERT_EQUALS(flag, true);
 
         auto res = w.exec("SELECT count(1) FROM "+_INDUSTRY_TABLE_NAME
@@ -278,15 +278,16 @@ public:
         // Tests incorrect fields.
         std::list<string*> values2;
         values2.push_back(new string[3]{"qweasd", "300", "true"});
-        flag = dbs->insertEntry(_INDUSTRY_TABLE_NAME, new string[3]{"name", "fake_field", "is_active"},
+        flag = dbs->insertEntryList(_INDUSTRY_TABLE_NAME, new string[3]{"name", "fake_field", "is_active"},
                 values2, N, w);
         TS_ASSERT_EQUALS(flag, false);
         
         // Tests incorrect values.
         values.clear();
-        flag = dbs->insertEntry(_INDUSTRY_TABLE_NAME, fields, values, N, w);
+        flag = dbs->insertEntryList(_INDUSTRY_TABLE_NAME, fields, values, N, w);
         TS_ASSERT_EQUALS(flag, false);
 
         delete[] ind1Values;
+        delete[] ind2Values;
     }
 };

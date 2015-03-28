@@ -7,7 +7,8 @@ using std::string;
 using std::vector;
 using namespace xls;
 
-ExcelReader::ExcelReader(std::string filepath) : DataFileReader(filepath),
+ExcelReader::ExcelReader(std::string filepath, const ReaderOptions& options) :
+    DataFileReader(filepath, options),
     _activeWorkSheet(nullptr),
 	_activeWorkSheetID(-1),
 	_workBook(nullptr),
@@ -109,11 +110,11 @@ void ExcelReader::_initIterator(uint32_t sheetNum)
 		_openSheet(sheetNum);
 		_isIterating = true;
 		_lastColIndex = 0;
-		_lastRowIndex = 0;
 	}
     else {
 		_isIterating = false;
 	}
+    _lastRowIndex = getOptions().getStartLine();
 }
 
 bool ExcelReader::readline(std::string &buffer)
@@ -125,7 +126,7 @@ std::string * ExcelReader::parseLine()
 {
 	CellContent content;
 	uint32_t numRows = _activeWorkSheet->rows.lastrow + 1;
-    _resValues = new std::string[4];
+    _resValues = new std::string[getOptions().getNumCol()];
 
 	for (uint32_t t=_lastRowIndex; t<numRows; t++) {
 		xlsRow *rowP = &_activeWorkSheet->rows.row[t];
@@ -136,6 +137,7 @@ std::string * ExcelReader::parseLine()
 
             if(cell->id != 0x201 && cell->isHidden == 0) {
                 _formatCell(cell, content);
+
                 _values.push_back(content.str);
             }
         }
@@ -145,40 +147,10 @@ std::string * ExcelReader::parseLine()
         }
         ++_lastRowIndex;
     }
-    _lastRowIndex = 0;
+    _lastRowIndex = getOptions().getStartLine();
     _sectionName = "";
     return nullptr;
 }
-
-/*
-CellContent ExcelReader::getNextCell()
-{
-	CellContent content;
-
-	if(!_isIterating) throw string("asked for the next cell, but not iterating!");
-	
-	uint32_t numRows = _activeWorkSheet->rows.lastrow + 1;
-	uint32_t numCols = _activeWorkSheet->rows.lastcol + 1;
-
-	if (_lastRowIndex >= numRows) return content;
-
-	for (uint32_t t=_lastRowIndex; t<numRows; t++) {
-		xlsRow *rowP = &_activeWorkSheet->rows.row[t];
-		for (uint32_t tt=_lastColIndex; tt<numCols; tt++) {
-			xlsCell	*cell = &rowP->cells.cell[tt];
-
-			if(cell->id == 0x201) continue;
-			_lastColIndex = tt + 1;
-			_formatCell(cell, content);
-			return content;
-		}
-		++_lastRowIndex;
-		_lastColIndex = 0;
-	}
-	// don't make iterator false - user can keep asking for cells, they all just be blank ones though
-	return content;
-}
-*/
 
 ExcelReader::~ExcelReader()
 {

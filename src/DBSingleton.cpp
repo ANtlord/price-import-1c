@@ -66,13 +66,7 @@ bool DBSingleton::checkEntry(const string &tableName, const string &fieldName,
         +_generateCondition(tableName, fieldName, value, w, SELECT)+")";
 
     pqxx::result res;
-    try {
-        res = w.exec(query);
-    }
-    catch (pqxx::data_exception &e) {
-        printf("Error query: %s", query.c_str());
-        return false;
-    }
+    _execWork(w, query, &res);
     if (res.size() != 1) {
         std::cout << "Error while checking existance of "
             << value << std::endl;
@@ -97,7 +91,7 @@ bool DBSingleton::updateEntry(const std::string &tableName,
         }
 
         if (keyFieldIdx != SIZE_MAX && keyFieldIdx < fieldsNum) {
-            std::string arr[fieldsNum-1];
+            string arr[fieldsNum-1];
             size_t index;
             for (size_t i = 0; i < fieldsNum-1; ++i) {
                 index = (i < keyFieldIdx) ? i : i+1;
@@ -107,37 +101,23 @@ bool DBSingleton::updateEntry(const std::string &tableName,
             std::string query = "update "+tableName+" as t1 set "+pars
                 +_generateCondition(tableName, keyFieldName,
                         values[keyFieldIdx], w, UPDATE);
-            try {
-                w.exec(query);
-                return true;
-            }
-            catch (pqxx::data_exception &e) {
-                std::cout << "Error query in update: " << query << std::endl;
-                return false;
-            }
-            catch (pqxx::undefined_column &e) {
-                std::cout << "Error query in update: " << query << std::endl;
-                return false;
-            }
-            catch (pqxx::usage_error &e) {
-                std::cout << "Error query in update: " << query << std::endl;
-                return false;
-            }
+
+            return _execWork(w, query);
         }
         else {
-            std::cout << "update else before end of the line" << std::endl;
+            printf("update else before end of the line\n");
             return false;
         }
     }
     return false;
 }
 
-bool DBSingleton::insertEntry(const std::string &tableName,
+bool DBSingleton::insertEntryList(const std::string &tableName,
         const std::string fields[], const std::list<std::string *> &values,
         const size_t fieldsNum, pqxx::work &w)
 {
-    std::string query = "insert into "+tableName+" ";
-    query += ("("+forge::join(fields, fieldsNum, ", ")+") values ");
+    std::string query = "insert into "+tableName+" " 
+        + ("("+forge::join(fields, fieldsNum, ", ")+") values ");
     if (values.size() > 0) {
         size_t i=0;
 
@@ -150,24 +130,44 @@ bool DBSingleton::insertEntry(const std::string &tableName,
             }
             ++i;
         }
-        try {
-            w.exec(query);
-            return true;
-        }
-        catch (pqxx::data_exception &e) {
-            std::cout << "Error query in insert: " << query << std::endl;
-            return false;
-        }
-        catch (pqxx::undefined_column &e) {
-            std::cout << "Error query in insert: " << query << std::endl;
-            return false;
-        }
-        catch (pqxx::usage_error &e) {
-            std::cout << "Error query in insert: " << query << std::endl;
-            return false;
-        }
+        return _execWork(w, query);
     }
     return false;
+}
+
+bool DBSingleton::insertEntry(const std::string &tableName, const string fields[],
+        const string values[], size_t fieldsNum)
+{
+    pqxx::work w(*getConnection());
+    std::string query = "insert into "+tableName+" " 
+        + ("("+forge::join(fields, fieldsNum, ", ")+") values ")
+        + ("("+forge::join(values, fieldsNum, ", ")+")");
+
+    bool res = _execWork(w, query);
+    if (res) w.commit();
+    else printf("error insert %s\n", query.c_str());
+    return res;
+}
+
+bool DBSingleton::_execWork(pqxx::work &w, const string& query, pqxx::result * res) const
+{
+    try {
+        if (res != nullptr) *res = w.exec(query);
+        else w.exec(query);
+        return true;
+    }
+    catch (pqxx::data_exception &e) {
+        std::cout << "Error query in insert: " << query << std::endl;
+        return false;
+    }
+    catch (pqxx::undefined_column &e) {
+        std::cout << "Error query in insert: " << query << std::endl;
+        return false;
+    }
+    catch (pqxx::usage_error &e) {
+        std::cout << "Error query in insert: " << query << std::endl;
+        return false;
+    }
 }
 
 std::string DBSingleton::_generateCondition(const std::string &tableName,

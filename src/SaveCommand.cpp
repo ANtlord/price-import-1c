@@ -40,7 +40,7 @@ bool SaveCommand::execute() const
         work w(*(dbSingleton->getConnection()));
         std::list<std::string*> insertData;
 
-        if (_KEY != 0) {
+        if (_KEY != nullptr) {
             for (auto it: _data) {
                 // update entry.
                 if (dbSingleton->checkEntry(_TABLE, _KEY, it[_keyIndex], w)) {
@@ -53,11 +53,20 @@ bool SaveCommand::execute() const
             }
         }
 
-        if (_KEY == 0) {
+        if (_KEY == nullptr) {
             insertData = _data;
         }
-        dbSingleton->insertEntry(_TABLE, _FIELDS, insertData, _N, w);
-        w.commit();
+
+        if (dbSingleton->insertEntryList(_TABLE, _FIELDS, insertData, _N, w))
+            w.commit();
+        else { // If query will be fail, than program tries insert items by 1.
+            for (auto it: insertData) {
+                //forge::each<std::string>([&w](std::string &item){
+                        //item = w.quote(item);}, it, _N);
+                dbSingleton->insertEntry(_TABLE, _FIELDS, it, _N);
+            }
+        }
+
         std::cout << "udpated: " << _data.size() - insertData.size() << std::endl;
         std::cout << "inserted: " << insertData.size() << std::endl;
         return true;

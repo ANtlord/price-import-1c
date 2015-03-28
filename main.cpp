@@ -13,7 +13,7 @@ int main(int argc, char *argv[])
     const std::string COMPANY_TABLE_NAME = "service_company";
     const std::string COMPANY_ID = std::string(argv[2]);
 
-    assert(argc > 3);   // Specifying filepath is required.
+    assert(argc > 4);   // Specifying filepath is required.
 
     // Saving options of the programm.
     ConfigSingleton::getSingleton()
@@ -25,14 +25,18 @@ int main(int argc, char *argv[])
 
     std::cout << "file: " << argv[1] << std::endl;
     std::cout << "company ID: " << argv[2] << std::endl;
+    std::cout << "start line: " << argv[4] << std::endl;
     std::string filepath(argv[1]);
 
     const std::string EXTENSION(argv[3]);
     DataFileReader * reader = nullptr;
+    auto obj = ReaderOptions(/*startLine*/ atoi(argv[4]), /*startCol*/ 0, /*numCol*/ 4,
+            /*entryLines*/ 0, /*isCascad*/ 0);
+
     if (EXTENSION == "csv")
-        reader = new CSVreader(filepath);
+        reader = new CSVreader(filepath, obj);
     else if (EXTENSION == "xls" || EXTENSION == "xlsx")
-        reader = new ExcelReader(filepath);
+        reader = new ExcelReader(filepath, obj);
     assert(reader != nullptr);  // Extension is not supporting.
 
     // Initializing reader of file.

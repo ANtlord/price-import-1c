@@ -4,13 +4,14 @@
 #include <filter.h>
 #include <each.h>
 
-DataFileReader::DataFileReader(std::string filepath)
+DataFileReader::DataFileReader(std::string filepath, const ReaderOptions& options)
 {
     _filepath = filepath;
     _isOpen = false;
     _filestream = nullptr;
     _sectionName = "";
     _resValues = nullptr;
+    _options = new ReaderOptions(options);
 }
 
 DataFileReader::~DataFileReader()
@@ -19,15 +20,16 @@ DataFileReader::~DataFileReader()
         _filestream->close();
         delete _filestream;
     }
+    delete _options;
 }
 
 std::string * DataFileReader::_setAggregatedValues()
 {
-    _values = forge::filter<std::string>(
-        [](const std::string& item) -> bool {return item.size() > 0;}, _values
-    );
     forge::each<std::string>(
         [](std::string& item) -> void {forge::trim(item);}, _values
+    );
+    _values = forge::filter<std::string>(
+        [](const std::string& item) -> bool {return item.size() > 0;}, _values
     );
 
     if (_values.size() == 1) {
