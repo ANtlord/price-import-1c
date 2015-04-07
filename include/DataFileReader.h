@@ -2,6 +2,8 @@
 #define DATAFILEREADER_H
 #include <fstream>
 #include <vector>
+#include <filter.h>
+#include "FieldCoordinates.h"
 
 class ReaderOptions
 {
@@ -32,21 +34,28 @@ public:
     bool getIsCascad() const { return _isCascad; }
 
 private:
+    /// Number of first line, which contains information for import.
     uint32_t _startLine;
+    /// Number of first column, which contains information for import.
     uint32_t _startCol;
     uint8_t _numCol;
     uint8_t _entryLines;
     bool _isCascad;
+    /// If the flag will equal true, than program will get last entry from
+    /// dupclicate data.
+    //bool _isNeedLast;
 };
 
 class DataFileReader
 {
 public:
-    DataFileReader(std::string filepath, const ReaderOptions& options);
+    DataFileReader(std::string filepath, const ReaderOptions& options,
+            const FieldCoordinates &coordinates);
     virtual ~DataFileReader();
     virtual bool readline(std::string &buffer) = 0;
     virtual std::string * parseLine() = 0;
     const ReaderOptions &getOptions() const { return *_options; }
+    const FieldCoordinates &getCoords() const { return *_coordinates; }
 
 protected:
     //! Method copies elements from values to resValues.
@@ -59,6 +68,7 @@ protected:
       when resValues are not ready, and returns them, when they are ready.
      */
     std::string * _setAggregatedValues();
+    uint8_t _entryLineCounter;
 
     std::string _filepath;
     std::ifstream * _filestream;
@@ -69,6 +79,12 @@ protected:
     std::string * _resValues;
     std::vector<std::string> _values;
     ReaderOptions * _options;
+
+private:
+    std::string * _incrementEntryLineCounter();
+    const uint8_t _START_ENTRY_LINE = 1;
+    void _setResValues(const uint8_t line);
+    FieldCoordinates * _coordinates;
 };
 
 #endif //DATAFILEREADER_H

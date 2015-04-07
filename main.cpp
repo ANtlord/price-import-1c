@@ -6,6 +6,7 @@
 #include "include/DBSingleton.h"
 #include "include/ConfigSingleton.h"
 
+using std::make_pair;
 int main(int argc, char *argv[])
 {
     const std::string CATEGORY_TABLE_NAME = "service_category";
@@ -30,13 +31,15 @@ int main(int argc, char *argv[])
 
     const std::string EXTENSION(argv[3]);
     DataFileReader * reader = nullptr;
-    auto obj = ReaderOptions(/*startLine*/ atoi(argv[4]), /*startCol*/ 0, /*numCol*/ 4,
-            /*entryLines*/ 0, /*isCascad*/ 0);
+    const size_t N = 4;
+    auto obj = ReaderOptions(/*startLine*/ atoi(argv[4]), /*startCol*/ 0, /*numCol*/ N,
+            /*entryLines*/ 3, /*isCascad*/ 0);
+    FieldCoordinates coords(make_pair(0,0), make_pair(0,1), make_pair(0,2), make_pair(1,2));
 
     if (EXTENSION == "csv")
-        reader = new CSVreader(filepath, obj);
+        reader = new CSVreader(filepath, obj, coords);
     else if (EXTENSION == "xls" || EXTENSION == "xlsx")
-        reader = new ExcelReader(filepath, obj);
+        reader = new ExcelReader(filepath, obj, coords);
     assert(reader != nullptr);  // Extension is not supporting.
 
     // Initializing reader of file.
@@ -44,7 +47,6 @@ int main(int argc, char *argv[])
 
     // Setting up parameters for parsing and storing categories.
     std::string categoryName = "";
-    const size_t N = 4;
     std::string * fields = new std::string[N]{
         "name", "section_id", "sort", "is_active"
     };

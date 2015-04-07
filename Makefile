@@ -12,6 +12,7 @@ TARGET=$(shell basename `pwd`)
 
 SOURCES=$(wildcard *.cpp src/*.cpp)
 TEST_SOURCES=$(wildcard src/*.cpp)
+UNIT_FILES=$(wildcard unittests/*.h)
 
 OBJ_DIR=obj/Release/
 vpath %.o $(OBJ_DIR)
@@ -20,7 +21,6 @@ COVOBJECTS=$(addprefix $(OBJ_DIR), $(SOURCES:%.cpp=%.gcno))
 GCDA_OBJECTS=$(addprefix $(OBJ_DIR), $(SOURCES:%.cpp=%.gcda))
 GCOV_FILES=$(wildcard *.gcov)
 TEST_OBJECTS=$(addprefix $(OBJ_DIR), $(TEST_SOURCES:%.cpp=%.o))
-UNIT_FILES=unittests/*.h
 RUNNER=runner
 RUNNER_CPP=unittests/runner.cpp
 
@@ -44,7 +44,7 @@ clean:
 	rm $(COVOBJECTS); rm $(OBJECTS); rm $(GCDA_OBJECTS); rm $(RUNNER); rm $(RUNNER_CPP); rm $(GCOV_FILES)
 
 # unit tests.
-$(RUNNER_CPP):
+$(RUNNER_CPP): $(UNIT_FILES)
 	./vendor/cxxtest/bin/cxxtestgen --error-printer -o $(RUNNER_CPP) $(UNIT_FILES)
 
 $(RUNNER): $(TEST_OBJECTS) $(RUNNER_CPP)
@@ -56,5 +56,11 @@ test: $(RUNNER)
 # coverage.
 coverage: CXX=g++ -std=c++0x -O0 --coverage -g
 coverage: $(RUNNER)
+	./$(RUNNER)
+	gcov -r -o $(OBJ_DIR)src/ $(TEST_SOURCES) 
+
+# Only for travis environment
+coveralls: CXX=g++ -std=c++0x -O0 --coverage -g
+coveralls: $(RUNNER)
 	./$(RUNNER)
 	coveralls --gcov-options='-r -o $(OBJ_DIR)src/ $(TEST_SOURCES)' --gcov=/usr/bin/gcov-4.8

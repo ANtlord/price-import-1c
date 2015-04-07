@@ -8,23 +8,36 @@
 using std::string;
 using std::fstream;
 using std::array;
+using std::make_pair;
 
 class CSVreaderTestSuite : public CxxTest::TestSuite
 {
 private:
     string _TEST_FILE_PATH;
     array<string, 8> _testAggregateData = {{
-        "Dolls;\n", "Toy Superman;\n", "130902;27,00 \n", "Toy Batman;\n", "100901;30,02 \n",
-        "Auto models;\n", "Toy BMW i8;\n", "791000; 15,00 \n"
+        "Dolls;\n",
+        "Toy Superman;\n", "130902;27,00 \n",
+        "Toy Batman;\n", "100901;30,02 \n",
+        "Auto models;\n",
+        "Toy BMW i8;\n", "791000; 15,00 \n"
     }};
+    FieldCoordinates * _coords = nullptr;
 
-    ReaderOptions * _optionsPlaceholder;
+    ReaderOptions * _optionsPlaceholder = nullptr;
     string _curDir;
 
 public:
     CSVreaderTestSuite()
     {
-        _optionsPlaceholder = new ReaderOptions(0,0,0,0,0);
+        const uint32_t N = 4;
+        _coords = new FieldCoordinates(
+            make_pair(0,0), /* section coordinates */
+            make_pair(0,1), /* name coordinates */
+            make_pair(0,2), /* code coordinates */
+            make_pair(1,2)  /* price coordinates */
+        );
+        _optionsPlaceholder = new ReaderOptions(/*startLine*/ 0, /*startCol*/ 0,
+                /*numCol*/ N, /*entryLines*/ 3, /*isCascad*/ 0);
         char *buf = new char[256];
         getcwd(buf, 256);
         _curDir = string(buf);
@@ -46,12 +59,13 @@ public:
     void testReadline()
     {
         string buffer;
-        auto reader = new CSVreader(_TEST_FILE_PATH, *_optionsPlaceholder);
+
+        auto reader = new CSVreader(_TEST_FILE_PATH, *_optionsPlaceholder, *_coords);
         TS_ASSERT_EQUALS(reader->readline(buffer), true);
         TS_ASSERT_EQUALS((buffer+"\n"), _testAggregateData.at(0));
         delete reader;
 
-        reader = new CSVreader(_TEST_FILE_PATH, *_optionsPlaceholder);
+        reader = new CSVreader(_TEST_FILE_PATH, *_optionsPlaceholder, *_coords);
         uint32_t i = 0;
         while (reader->readline(buffer)) ++i;
         TS_ASSERT_EQUALS(i, _testAggregateData.size());
@@ -64,19 +78,27 @@ public:
         const uint32_t N = 4;
         string * buffer = new string[N];
         auto options = ReaderOptions(/*startLine*/ 0, /*startCol*/ 0,
-                /*numCol*/ N, /*entryLines*/ 0, /*isCascad*/ 0);
-        auto reader = new CSVreader(_TEST_FILE_PATH, options);
+                /*numCol*/ N, /*entryLines*/ 3, /*isCascad*/ 0);
+        auto reader = new CSVreader(_TEST_FILE_PATH, options, *_coords);
         buffer = reader->parseLine();
-        TS_ASSERT_EQUALS(buffer[0]+";\n", _testAggregateData[1]);
-        TS_ASSERT_EQUALS(buffer[1], "130902");
-        TS_ASSERT_EQUALS(buffer[2], "27.00");
-        TS_ASSERT_EQUALS(buffer[3]+";\n", _testAggregateData[0]);
+        TS_ASSERT_EQUALS(buffer[ResultIndexes::NAME]+";\n", _testAggregateData[1]);
+        TS_ASSERT_EQUALS(buffer[ResultIndexes::CODE], "130902");
+        TS_ASSERT_EQUALS(buffer[ResultIndexes::PRICE], "27.00");
+        TS_ASSERT_EQUALS(buffer[ResultIndexes::SECTION]+";\n", _testAggregateData[0]);
 
         buffer = reader->parseLine();
-        TS_ASSERT_EQUALS(buffer[0]+";\n", _testAggregateData[3]);
-        TS_ASSERT_EQUALS(buffer[1], "100901");
-        TS_ASSERT_EQUALS(buffer[2], "30.02");
-        TS_ASSERT_EQUALS(buffer[3]+";\n", _testAggregateData[0]);
+        TS_ASSERT_EQUALS(buffer[ResultIndexes::NAME]+";\n", _testAggregateData[3]);
+        TS_ASSERT_EQUALS(buffer[ResultIndexes::CODE], "100901");
+        TS_ASSERT_EQUALS(buffer[ResultIndexes::PRICE], "30.02");
+        TS_ASSERT_EQUALS(buffer[ResultIndexes::SECTION]+";\n", _testAggregateData[0]);
+
+        buffer = reader->parseLine();
+        TS_ASSERT_EQUALS(buffer[ResultIndexes::NAME]+";\n", _testAggregateData[6]);
+        TS_ASSERT_EQUALS(buffer[ResultIndexes::CODE], "791000");
+        TS_ASSERT_EQUALS(buffer[ResultIndexes::PRICE], "15.00");
+        TS_ASSERT_EQUALS(buffer[ResultIndexes::SECTION]+";\n", _testAggregateData[5]);
+
+        TS_ASSERT(nullptr == reader->parseLine());
         delete reader;
         delete[] buffer;
     }
@@ -86,15 +108,15 @@ public:
         // Tests correct number of start line.
         const uint32_t N = 4;
         auto options = ReaderOptions(/*startLine*/ 4, /*startCol*/ 0,
-                /*numCol*/ N, /*entryLines*/ 0, /*isCascad*/ 0);
-        auto reader = new CSVreader(_TEST_FILE_PATH, options);
+                /*numCol*/ N, /*entryLines*/ 3, /*isCascad*/ 0);
+        auto reader = new CSVreader(_TEST_FILE_PATH, options, *_coords);
         string * buffer = new string[N];
         buffer = reader->parseLine();
         
-        TS_ASSERT_EQUALS(buffer[0]+";\n", _testAggregateData[6]);
-        TS_ASSERT_EQUALS(buffer[1], "791000");
-        TS_ASSERT_EQUALS(buffer[2], "15.00");
-        TS_ASSERT_EQUALS(buffer[3]+";\n", _testAggregateData[5]);
+        TS_ASSERT_EQUALS(buffer[ResultIndexes::NAME]+";\n", _testAggregateData[6]);
+        TS_ASSERT_EQUALS(buffer[ResultIndexes::CODE], "791000");
+        TS_ASSERT_EQUALS(buffer[ResultIndexes::PRICE], "15.00");
+        TS_ASSERT_EQUALS(buffer[ResultIndexes::SECTION]+";\n", _testAggregateData[5]);
         delete reader;
         delete[] buffer;
     }
@@ -106,24 +128,22 @@ public:
         std::ofstream file(FILEPATH);
         if (file.good()) file << DATA;
         file.close();
-        const uint32_t N = 4;
-        ReaderOptions options(/*startLine*/ 0, /*startCol*/ 0,
-                /*numCol*/ N, /*entryLines*/ 0, /*isCascad*/ 0);
-        auto reader = new CSVreader(FILEPATH, options);
+        auto reader = new CSVreader(FILEPATH, *_optionsPlaceholder, *_coords);
 
+        const uint32_t N = 4;
         string * buffer = new string[N];
 
         buffer = reader->parseLine();
-        TS_ASSERT_EQUALS(buffer[0], "Toy Batman");
-        TS_ASSERT_EQUALS(buffer[1], "130902");
-        TS_ASSERT_EQUALS(buffer[2], "26.00");
-        TS_ASSERT_EQUALS(buffer[3], "Toys");
+        TS_ASSERT_EQUALS(buffer[ResultIndexes::NAME], "Toy Batman");
+        TS_ASSERT_EQUALS(buffer[ResultIndexes::CODE], "130902");
+        TS_ASSERT_EQUALS(buffer[ResultIndexes::PRICE], "26.00");
+        TS_ASSERT_EQUALS(buffer[ResultIndexes::SECTION], "Toys");
 
         buffer = reader->parseLine();
-        TS_ASSERT_EQUALS(buffer[0], "Toy Superman");
-        TS_ASSERT_EQUALS(buffer[1], "421013");
-        TS_ASSERT_EQUALS(buffer[2], "204.00");
-        TS_ASSERT_EQUALS(buffer[3], "Toys");
+        TS_ASSERT_EQUALS(buffer[ResultIndexes::NAME], "Toy Superman");
+        TS_ASSERT_EQUALS(buffer[ResultIndexes::CODE], "421013");
+        TS_ASSERT_EQUALS(buffer[ResultIndexes::PRICE], "204.00");
+        TS_ASSERT_EQUALS(buffer[ResultIndexes::SECTION], "Toys");
 
         remove(FILEPATH.c_str());
         delete reader;

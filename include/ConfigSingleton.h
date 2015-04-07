@@ -23,6 +23,5 @@ private:
     std::array<std::string, 5 /* Options length */> _data;
     static ConfigSingleton * _self;
     ConfigSingleton();
-    virtual ~ConfigSingleton ();
 };
 #endif //CONFIGSINGLETON_H

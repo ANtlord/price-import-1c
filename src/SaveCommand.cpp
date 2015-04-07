@@ -14,7 +14,7 @@ SaveCommand::SaveCommand(const char* table, std::string fields[], size_t n,
         const char * key) : _N(n), _TABLE(table), _KEY(key)
 {
     _FIELDS = fields;
-    if (_KEY != 0) {
+    if (_KEY != nullptr) {
         _keyIndex = forge::findFirst<std::string>([&key](const std::string &v)
             -> bool {return v == key;}, _FIELDS, _N);
     }

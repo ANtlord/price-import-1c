@@ -14,7 +14,7 @@ public:
       \param key - unrequired field. It will be user for checking existance of entry.
     */
     SaveCommand(const char*  table, std::string fields[], size_t n,
-            const char * key=0);
+            const char * key=nullptr);
     size_t getFieldsLength() const;
     const std::string * getFields() const;
     virtual ~SaveCommand();

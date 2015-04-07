@@ -4,29 +4,37 @@
 #include <filter.h>
 #include <each.h>
 
-CSVreader::CSVreader(std::string filepath, const ReaderOptions& options) :
-    DataFileReader(filepath, options)
+using std::string;
+using std::vector;
+
+CSVreader::CSVreader(std::string filepath, const ReaderOptions& options,
+        const FieldCoordinates &coordinates) :
+    DataFileReader(filepath, options, coordinates)
 {
 }
 
-std::string * CSVreader::parseLine()
+string * CSVreader::parseLine()
 {
-    std::string line;
-    _resValues = new std::string[getOptions().getNumCol()];
+    string line;
+    _resValues = new string[(&getOptions())->getNumCol()];
 
     while(readline(line)){
-        if (_lineCounter >= getOptions().getStartLine()) {
+        if (_skipLineCounter >= (&getOptions())->getStartLine()) {
             _values = forge::split(line, ';');
+
             auto res = _setAggregatedValues(); 
+
+            // If result is not equal null, it means that it store information
+            // from entry block.
             if (res != nullptr) {
                 return res; 
             }
         }
         else {
-           ++_lineCounter;
+           ++_skipLineCounter;
         }
     }
-    _lineCounter = 0;
+    _skipLineCounter = 0;
     _sectionName = "";
     return nullptr;
 }

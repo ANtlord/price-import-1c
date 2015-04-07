@@ -30,11 +30,6 @@ pqxx::connection * DBSingleton::getConnection() const
     return this->_connection;
 }
 
-DBSingleton::~DBSingleton ()
-{
-
-}
-
 std::list<std::vector<string>> DBSingleton::getTableData(string tableName,
         const string fields[], const size_t fieldsSize)
 {

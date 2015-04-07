@@ -89,7 +89,6 @@ private:
 
 
     DBSingleton();
-    virtual ~DBSingleton ();
     static DBSingleton * _self;
     pqxx::connection * _connection;
 };

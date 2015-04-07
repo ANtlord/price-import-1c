@@ -34,7 +34,8 @@ public:
 class ExcelReader : public DataFileReader
 {
 public:
-    ExcelReader(std::string filepath, const ReaderOptions& options);
+    ExcelReader(std::string filepath, const ReaderOptions& options,
+            const FieldCoordinates &coordinates);
     bool readline(std::string &buffer) override;
     std::string * parseLine() override;
     virtual ~ExcelReader();

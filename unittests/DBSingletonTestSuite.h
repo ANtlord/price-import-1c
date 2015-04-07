@@ -246,7 +246,7 @@ public:
         delete[] values2;
     }
 
-    void testInsertEntry()
+    void testInsertEntryList()
     {
         auto dbs = DBSingleton::getSingleton();
 
@@ -290,4 +290,22 @@ public:
         delete[] ind1Values;
         delete[] ind2Values;
     }
+
+    void testInsertEntry()
+    {
+        auto dbs = DBSingleton::getSingleton();
+        const uint32_t N = 3;
+
+        string fields[N] = {"name", "sort", "is_active"};
+        string * values = new string[N]{"'Steel'", "'300'", "'true'"};
+        bool flag = dbs->insertEntry(_INDUSTRY_TABLE_NAME, fields, values, N);
+        TS_ASSERT_EQUALS(flag, true);
+        delete[] values;
+
+        values = new string[N]{"Steel", "300", "true"};
+        flag = dbs->insertEntry(_INDUSTRY_TABLE_NAME, fields, values, N);
+        TS_ASSERT_EQUALS(flag, false);
+        delete[] values;
+    }
+
 };

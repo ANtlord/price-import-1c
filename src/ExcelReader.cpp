@@ -7,8 +7,9 @@ using std::string;
 using std::vector;
 using namespace xls;
 
-ExcelReader::ExcelReader(std::string filepath, const ReaderOptions& options) :
-    DataFileReader(filepath, options),
+ExcelReader::ExcelReader(std::string filepath, const ReaderOptions& options,
+        const FieldCoordinates &coordinates) :
+    DataFileReader(filepath, options, coordinates),
     _activeWorkSheet(nullptr),
 	_activeWorkSheetID(-1),
 	_workBook(nullptr),
