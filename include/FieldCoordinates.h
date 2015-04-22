@@ -35,6 +35,9 @@ public:
     const std::pair<uint8_t, uint8_t> &getPrice() const { return _price; }
     const std::pair<uint8_t, uint8_t> &getCode() const { return _code; }
     const std::pair<uint8_t, uint8_t> &getName() const { return _name; }
+    const uint8_t &getFieldsNum() const { return _FIELDS_NUM; }
+
+    const std::pair<uint8_t, uint8_t> ** getFieldsAsArray() const;
 
 private:
     std::pair<uint8_t, uint8_t> _category;
@@ -42,6 +45,7 @@ private:
     std::pair<uint8_t, uint8_t> _price;
     std::pair<uint8_t, uint8_t> _code;
     const uint8_t _FIELDS_NUM = 4;
+    const std::pair<uint8_t, uint8_t> ** _FIELDS;
 };
 
 #endif //FIELDCOORDINATES_H

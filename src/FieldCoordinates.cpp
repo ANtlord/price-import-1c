@@ -11,6 +11,9 @@ FieldCoordinates::FieldCoordinates(const std::pair<uint8_t, uint8_t> &category,
     _name = name;
     _code = code;
     _price = price;
+    _FIELDS = new const std::pair<uint8_t, uint8_t> *[_FIELDS_NUM]{
+        &_name, &_code, &_price, &_category
+    };
 }
 
 FieldCoordinates::FieldCoordinates(const FieldCoordinates &value)
@@ -25,24 +28,18 @@ uint8_t FieldCoordinates::getLineWidth(uint8_t index) const
 {
     assert(index < _FIELDS_NUM);
     uint8_t res = 0;
-    const std::pair<uint8_t, uint8_t> * FIELDS[] = {
-        &_name, &_code, &_price, &_category
-    };
 
     for (uint8_t i = 0; i < _FIELDS_NUM; ++i)
-        if (FIELDS[i]->second == index)
-            res = std::max(res, FIELDS[i]->first);
+        if (_FIELDS[i]->second == index)
+            res = std::max(res, _FIELDS[i]->first);
 
     return res+1;   // Length = last index + 1.
 }
 
 ResultIndexes FieldCoordinates::getResultIndex(uint8_t x, uint8_t y) const
 {
-    const std::pair<uint8_t, uint8_t> * FIELDS[] = {
-        &_name, &_code, &_price, &_category
-    };
     for (uint8_t i = 0; i < _FIELDS_NUM; ++i)
-        if (FIELDS[i]->first == x && FIELDS[i]->second == y)
+        if (_FIELDS[i]->first == x && _FIELDS[i]->second == y)
             return (ResultIndexes)i;
     ResultIndexesException exception;
     throw exception;
@@ -53,6 +50,10 @@ bool FieldCoordinates::isPrice(uint8_t x, uint8_t y) const
     return (_price.first == x && _price.second == y);
 }
 
+const std::pair<uint8_t, uint8_t> ** FieldCoordinates::getFieldsAsArray() const
+{
+    return _FIELDS;
+}
 //uint8_t ** FieldCoordinates::getFieldIndexes() const
 //{
     /*
