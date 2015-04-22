@@ -16,6 +16,10 @@ DataFileReader::DataFileReader(std::string filepath,
     _options = new ReaderOptions(options);
     _coordinates = new FieldCoordinates(coordinates);
     _entryLineCounter = _START_ENTRY_LINE;
+
+    auto FIELDS = coordinates.getFieldsAsArray();
+    for (uint8_t i = 0; i < coordinates.getFieldsNum(); ++i)
+        assert(FIELDS[i]->second < options.getEntryLines());
 }
 
 DataFileReader::~DataFileReader()
@@ -25,7 +29,6 @@ DataFileReader::~DataFileReader()
         delete _filestream;
     }
     delete _options;
-    std::cout << "FUCK!!!" << std::endl;
     delete _coordinates;
 }
 
@@ -78,31 +81,38 @@ std::string * DataFileReader::_setAggregatedValues()
     const uint8_t SECTION_LINE_SIZE = getCoords().getLineWidth(SECTION_LINE);
     const bool IS_SECTION_LINE_SIZE = (SECTION_LINE_SIZE == _values.size());
 
+    if (getOptions().getIsCascad()) {
+        // I suppose, that section name is on first line always. It should work
+        // for cascade price lists.
+        if (IS_SECTION_LINE_SIZE) {
+            // If programm gets single column twice and the cell of this column is
+            // on 2nd line of entry block, then it was name of section.
+            if (IS_NOT_EMPTY_NAME && PREV_LINE == (_START_ENTRY_LINE + 1)) {
+                _sectionName = _resValues[ResultIndexes::NAME];
+                --_entryLineCounter;
+            }
 
-    // I suppose, that section name is on first line always. It should work
-    // for cascade price lists.
-    if (IS_SECTION_LINE_SIZE) {
-        // If programm gets single column twice and the cell of this column is
-        // on 2nd line of entry block, then it was name of section.
-        if (IS_NOT_EMPTY_NAME && PREV_LINE == (_START_ENTRY_LINE + 1)) {
-            _sectionName = _resValues[ResultIndexes::NAME];
-            --_entryLineCounter;
+            // If number of columns in first line of an entry block equals
+            // number of section's line columns.
+            if (getCoords().getLineWidth(_START_ENTRY_LINE) == SECTION_LINE_SIZE)
+                _setResValues(_entryLineCounter);
+            return _incrementEntryLineCounter();
         }
-
-        // If number of columns in first line of an entry block equals
-        // number of section's line columns.
-        if (getCoords().getLineWidth(_START_ENTRY_LINE) == SECTION_LINE_SIZE)
-            _setResValues(_entryLineCounter);
-        return _incrementEntryLineCounter();
-    }
-    else if (!IS_SECTION_LINE_SIZE && IS_NOT_EMPTY_NAME) {
-        _setResValues(PREV_LINE);
-        _resValues[ResultIndexes::SECTION] = _sectionName;
-        return _incrementEntryLineCounter();
+        // This is condition is need for duplicate data protection. E. g. if we get 
+        // duplicates of price and code.
+        else if (!IS_SECTION_LINE_SIZE && IS_NOT_EMPTY_NAME) {
+            _setResValues(PREV_LINE);
+            _resValues[ResultIndexes::SECTION] = _sectionName;
+            return _incrementEntryLineCounter();
+        }
+        else {
+            // Here program gets values of duplicated codes and prices.
+            // TODO: handle this
+        }
     }
     else {
-        // Here program gets values of duplicated codes and prices.
-        // TODO: handle this
+        _setResValues(0);
+        return _resValues;
     }
 
     return nullptr;

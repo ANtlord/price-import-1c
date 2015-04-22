@@ -57,16 +57,21 @@ bool SaveCommand::execute() const
             insertData = _data;
         }
 
-        if (dbSingleton->insertEntryList(_TABLE, _FIELDS, insertData, _N, w))
-            w.commit();
-        else { // If query will be fail, than program tries insert items by 1.
-            for (auto it: insertData) {
-                //forge::each<std::string>([&w](std::string &item){
-                        //item = w.quote(item);}, it, _N);
-                dbSingleton->insertEntry(_TABLE, _FIELDS, it, _N);
+        if (insertData.size() > 0) {
+            if (dbSingleton->insertEntryList(_TABLE, _FIELDS, insertData, _N, w))
+                w.commit();
+            else { // If query will be fail, than program tries insert items by 1.
+                for (auto it: insertData) {
+                    //forge::each<std::string>([&w](std::string &item){
+                            //item = w.quote(item);}, it, _N);
+                    dbSingleton->insertEntry(_TABLE, _FIELDS, it, _N);
+                }
             }
         }
-
+        else {
+            w.commit();
+        }
+        
         std::cout << "udpated: " << _data.size() - insertData.size() << std::endl;
         std::cout << "inserted: " << insertData.size() << std::endl;
         return true;

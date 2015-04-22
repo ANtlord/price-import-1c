@@ -1,5 +1,4 @@
 CXX=g++ -std=c++0x
-COV_KEYS=-g -O0 --coverage
 #CXXFLAGS=$(shell wx-config --cxxflags)
 #LIBS=$(shell wx-config --gl-libs --libs)
 PROJECT_FOLDER=$(shell pwd)
@@ -29,8 +28,8 @@ $(OBJ_DIR)%.o: %.cpp
 
 all: $(SOURCES) $(TARGET)
 
-debug:
-	$(CXX) -g $(SOURCES) $(VENDOR_LIBS) $(VENDOR_HEADERS)
+debug: CXX=g++ -std=c++0x -g
+debug: $(SOURCES) $(TARGET)
    
 $(OBJECTS): | $(OBJ_DIR)
 

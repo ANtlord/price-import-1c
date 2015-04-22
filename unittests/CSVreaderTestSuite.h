@@ -4,6 +4,8 @@
 #include <unistd.h>
 #include "../include/csvreader.h"
 #include <array>
+#include <split.h>
+#include <trim.h>
 
 using std::string;
 using std::fstream;
@@ -26,6 +28,21 @@ private:
     ReaderOptions * _optionsPlaceholder = nullptr;
     string _curDir;
 
+    template<size_t N>
+    void _fillFile(const string &path, const array<string, N>& arr)
+    {
+        std::ofstream file(path);
+        if (file.good()) {
+            for (const auto& item: arr) {
+                file << item;
+            }
+            file.close();
+        }
+        else {
+            TS_FAIL("Cannot open file for writing "+path);
+        }
+    }
+
 public:
     CSVreaderTestSuite()
     {
@@ -37,23 +54,14 @@ public:
             make_pair(1,2)  /* price coordinates */
         );
         _optionsPlaceholder = new ReaderOptions(/*startLine*/ 0, /*startCol*/ 0,
-                /*numCol*/ N, /*entryLines*/ 3, /*isCascad*/ 0);
+                /*numCol*/ N, /*entryLines*/ 3, /*isCascad*/ true);
         char *buf = new char[256];
         getcwd(buf, 256);
         _curDir = string(buf);
 
         _TEST_FILE_PATH = _curDir+"/unittest_csvfile.csv";
 
-        std::ofstream file(_TEST_FILE_PATH);
-        if (file.good()) {
-            for (const auto& item: _testAggregateData) {
-                file << item;
-            }
-            file.close();
-        }
-        else {
-            TS_FAIL("Cannot open file for writing "+_TEST_FILE_PATH);
-        }
+        _fillFile(_TEST_FILE_PATH, _testAggregateData);
     }
 
     void testReadline()
@@ -78,7 +86,7 @@ public:
         const uint32_t N = 4;
         string * buffer = new string[N];
         auto options = ReaderOptions(/*startLine*/ 0, /*startCol*/ 0,
-                /*numCol*/ N, /*entryLines*/ 3, /*isCascad*/ 0);
+                /*numCol*/ N, /*entryLines*/ 3, /*isCascad*/ true);
         auto reader = new CSVreader(_TEST_FILE_PATH, options, *_coords);
         buffer = reader->parseLine();
         TS_ASSERT_EQUALS(buffer[ResultIndexes::NAME]+";\n", _testAggregateData[1]);
@@ -108,7 +116,7 @@ public:
         // Tests correct number of start line.
         const uint32_t N = 4;
         auto options = ReaderOptions(/*startLine*/ 4, /*startCol*/ 0,
-                /*numCol*/ N, /*entryLines*/ 3, /*isCascad*/ 0);
+                /*numCol*/ N, /*entryLines*/ 3, /*isCascad*/ true);
         auto reader = new CSVreader(_TEST_FILE_PATH, options, *_coords);
         string * buffer = new string[N];
         buffer = reader->parseLine();
@@ -148,6 +156,52 @@ public:
         remove(FILEPATH.c_str());
         delete reader;
         delete[] buffer;
+    }
+
+    void testPlainParse()
+    {
+        // Preparing data.
+        const array<string, 2> DATA = {{
+            "Toys; Toy Superman; 130902; 26,00;\n",
+            "Toys; Toy Batman; 110905; 138,00;\n"
+        }};
+        const string TEST_FILE_PATH = _curDir+"/unittest_plain_csvfile.csv";
+        _fillFile(TEST_FILE_PATH, DATA);
+        const uint32_t N = 4;
+        FieldCoordinates coords(
+            make_pair(0,0),
+            make_pair(1,0),
+            make_pair(2,0),
+            make_pair(3,0)
+        );
+        ReaderOptions options(/*startLine*/ 0, /*startCol*/ 0, /*numCol*/ N,
+                /*entryLines*/ 1, /*isCascad*/ false);
+        auto reader = new CSVreader(TEST_FILE_PATH, options, coords);
+        std::string * resValues;
+
+        uint32_t i = 0;
+        while ((resValues = reader->parseLine()) != nullptr){
+            auto values = forge::split(DATA.at(i), ';');
+            for (uint8_t j = 0; j < values.size(); ++j) {
+                forge::trim(values[j]);
+                if (j == coords.getPrice().first)
+                    std::replace(values[j].begin(), values[j].end(), ',', '.');
+            }
+
+            TS_ASSERT_EQUALS(resValues[ResultIndexes::NAME],
+                    values.at(coords.getName().first));
+            TS_ASSERT_EQUALS(resValues[ResultIndexes::CODE],
+                    values.at(coords.getCode().first));
+            TS_ASSERT_EQUALS(resValues[ResultIndexes::PRICE],
+                    values.at(coords.getPrice().first));
+            TS_ASSERT_EQUALS(resValues[ResultIndexes::SECTION],
+                    values.at(coords.getCategory().first));
+            delete[] resValues;
+            ++i;
+        }
+        
+        delete reader;
+        remove(TEST_FILE_PATH.c_str());
     }
 
     virtual ~CSVreaderTestSuite()
