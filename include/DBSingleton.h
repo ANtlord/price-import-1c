@@ -62,10 +62,12 @@ public:
       \param fieldsNum - number of fields within key field.
       \param w - work (libpqxx object)
     */
-    bool insertEntry(const std::string &tableName, const std::string fields[],
+    bool insertEntryList(const std::string &tableName, const std::string fields[],
             const std::list<std::string *> &values, size_t fieldsNum,
             pqxx::work &w);
 
+    bool insertEntry(const std::string &tableName, const std::string fields[],
+            const std::string values[], size_t fieldsNum);
 
 private:
     enum QueryType : uint8_t { SELECT=0, UPDATE=1 };
@@ -82,8 +84,11 @@ private:
             const std::string &keyField, const std::string &keyValue,
             pqxx::work &w, const QueryType type) const;
 
+    bool _execWork(pqxx::work &w, const std::string& query,
+            pqxx::result * res = nullptr) const;
+
+
     DBSingleton();
-    virtual ~DBSingleton ();
     static DBSingleton * _self;
     pqxx::connection * _connection;
 };

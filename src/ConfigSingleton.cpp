@@ -13,10 +13,6 @@ ConfigSingleton::ConfigSingleton ()
 {
 }
 
-ConfigSingleton::~ConfigSingleton ()
-{
-}
-
 ConfigSingleton * ConfigSingleton::addOption(Options key, const std::string &value)
 {
     _data[key]=value;

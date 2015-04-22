@@ -28,4 +28,4 @@ script:
 
 after_success:
   - make clean
-  - make coverage
+  - make coveralls

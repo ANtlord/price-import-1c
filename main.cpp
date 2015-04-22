@@ -6,6 +6,7 @@
 #include "include/DBSingleton.h"
 #include "include/ConfigSingleton.h"
 
+using std::make_pair;
 int main(int argc, char *argv[])
 {
     const std::string CATEGORY_TABLE_NAME = "service_category";
@@ -13,7 +14,7 @@ int main(int argc, char *argv[])
     const std::string COMPANY_TABLE_NAME = "service_company";
     const std::string COMPANY_ID = std::string(argv[2]);
 
-    assert(argc > 3);   // Specifying filepath is required.
+    assert(argc > 4);   // Specifying filepath is required.
 
     // Saving options of the programm.
     ConfigSingleton::getSingleton()
@@ -25,14 +26,20 @@ int main(int argc, char *argv[])
 
     std::cout << "file: " << argv[1] << std::endl;
     std::cout << "company ID: " << argv[2] << std::endl;
+    std::cout << "start line: " << argv[4] << std::endl;
     std::string filepath(argv[1]);
 
     const std::string EXTENSION(argv[3]);
     DataFileReader * reader = nullptr;
+    const size_t N = 4;
+    auto obj = ReaderOptions(/*startLine*/ atoi(argv[4]), /*startCol*/ 0, /*numCol*/ N,
+            /*entryLines*/ 3, /*isCascad*/ 0);
+    FieldCoordinates coords(make_pair(0,0), make_pair(0,1), make_pair(0,2), make_pair(1,2));
+
     if (EXTENSION == "csv")
-        reader = new CSVreader(filepath);
+        reader = new CSVreader(filepath, obj, coords);
     else if (EXTENSION == "xls" || EXTENSION == "xlsx")
-        reader = new ExcelReader(filepath);
+        reader = new ExcelReader(filepath, obj, coords);
     assert(reader != nullptr);  // Extension is not supporting.
 
     // Initializing reader of file.
@@ -40,7 +47,6 @@ int main(int argc, char *argv[])
 
     // Setting up parameters for parsing and storing categories.
     std::string categoryName = "";
-    const size_t N = 4;
     std::string * fields = new std::string[N]{
         "name", "section_id", "sort", "is_active"
     };

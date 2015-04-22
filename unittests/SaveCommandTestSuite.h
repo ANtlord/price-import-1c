@@ -17,11 +17,16 @@ class SaveCommandTestSuite : public CxxTest::TestSuite
     string * _fields = new string[_N]{
         "name", "section_id", "sort", "is_active"
     };
-    SaveCommand _buildCmd(const string& tableName)
+    SaveCommand _buildCmd(const string& tableName, const char * key=nullptr)
     {
         string * fields = new string[_N];
         for (size_t i = 0; i < _N; ++i) fields[i] = _fields[i];
-        return SaveCommand(tableName.c_str(), fields, _N);
+        if (key == nullptr) {
+            return SaveCommand(tableName.c_str(), fields, _N);
+        }
+        else {
+            return SaveCommand(tableName.c_str(), fields, _N, key);
+        }
     }
 
     SaveCommand _buildCmd(const string& tableName, string * fields, size_t n)
@@ -76,7 +81,7 @@ public:
     void testClearData()
     {
         // TODO: make interface for getting fields "data" in SaveCommand class.
-        auto cmd = _buildCmd("product");
+        auto cmd = _buildCmd("product", "name");
         cmd.addData(new string[_N]{"pen", "1", "300", "true"});
         cmd.clearData();
         TS_ASSERT_EQUALS(cmd.getData()->size(), 0);
