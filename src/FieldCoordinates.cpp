@@ -1,27 +1,35 @@
 #include "../include/FieldCoordinates.h"
 #include <cassert>
 #include <algorithm>
+#include <iostream>
 
 FieldCoordinates::FieldCoordinates(const std::pair<uint8_t, uint8_t> &category,
     const std::pair<uint8_t, uint8_t> &name,
     const std::pair<uint8_t, uint8_t> &code,
-    const std::pair<uint8_t, uint8_t> &price)
+    const std::pair<uint8_t, uint8_t> &price) :
+    _FIELDS_NUM(4)
 {
     _category = category;
     _name = name;
     _code = code;
     _price = price;
-    _FIELDS = new const std::pair<uint8_t, uint8_t> *[_FIELDS_NUM]{
+    _FIELDS = new const std::pair<uint8_t, uint8_t>* const[_FIELDS_NUM]{
         &_name, &_code, &_price, &_category
     };
 }
 
-FieldCoordinates::FieldCoordinates(const FieldCoordinates &value)
+FieldCoordinates::FieldCoordinates(const FieldCoordinates &value) : 
+    _FIELDS_NUM(4)
 {
     _category = value.getCategory();
     _name = value.getName();
     _code = value.getCode();
     _price = value.getPrice();
+}
+
+FieldCoordinates::~FieldCoordinates()
+{
+    delete[] _FIELDS;
 }
 
 uint8_t FieldCoordinates::getLineWidth(uint8_t index) const
@@ -50,21 +58,8 @@ bool FieldCoordinates::isPrice(uint8_t x, uint8_t y) const
     return (_price.first == x && _price.second == y);
 }
 
-const std::pair<uint8_t, uint8_t> ** FieldCoordinates::getFieldsAsArray() const
+const std::pair<uint8_t, uint8_t>* const* FieldCoordinates::getFieldsAsArray() const
 {
+    std::cout << _FIELDS[0] << std::endl;
     return _FIELDS;
 }
-//uint8_t ** FieldCoordinates::getFieldIndexes() const
-//{
-    /*
-    uint8_t ** res = new uint8_t*[_FIELDS_NUM];
-    for (uint8_t i = 0; i < _FIELDS_NUM; ++i) {
-        res[i] = new uint8_t*[getLineWidth(i)];
-
-        for (uint8_t j = 0; j < getLineWidth(i); ++j) {
-            res[i][j] = 
-        }
-    }
-    return res;
-    */ 
-//}
