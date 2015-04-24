@@ -34,7 +34,7 @@ public:
     {
         string buffer;
         ReaderOptions options(/*startLine*/ 0, /*startCol*/ 0,
-                /*numCol*/ 4, /*entryLines*/ 3, /*isCascad*/ 0);
+                /*numCol*/ 4, /*entryLines*/ 3, /*isCascad*/ true);
         auto reader = new ExcelReader(_TEST_FILE_PATH, options, *_coords);
         TS_ASSERT_EQUALS(reader->readline(buffer), false);
     }
@@ -43,7 +43,7 @@ public:
     {
         const uint32_t N = 4;
         ReaderOptions options(/*startLine*/ 0, /*startCol*/ 0,
-                /*numCol*/ N, /*entryLines*/ 3, /*isCascad*/ 0);
+                /*numCol*/ N, /*entryLines*/ 3, /*isCascad*/ true);
         string * buffer = new string[N];
         auto reader = new ExcelReader(_TEST_FILE_PATH, options, *_coords);
         buffer = reader->parseLine();
@@ -64,7 +64,7 @@ public:
     {
         const uint32_t N = 4;
         ReaderOptions options(/*startLine*/ 5, /*startCol*/ 0,
-                /*numCol*/ N, /*entryLines*/ 3, /*isCascad*/ 0);
+                /*numCol*/ N, /*entryLines*/ 3, /*isCascad*/ true);
         string * buffer = new string[N];
         auto reader = new ExcelReader(_TEST_FILE_PATH, options, *_coords);
         buffer = reader->parseLine();

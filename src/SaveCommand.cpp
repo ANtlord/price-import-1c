@@ -41,6 +41,7 @@ bool SaveCommand::execute() const
         std::list<std::string*> insertData;
 
         if (_KEY != nullptr) {
+            std::cout << 12312123123123123 << std::endl;
             for (auto it: _data) {
                 // update entry.
                 if (dbSingleton->checkEntry(_TABLE, _KEY, it[_keyIndex], w)) {

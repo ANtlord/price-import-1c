@@ -37,7 +37,7 @@ public:
             make_pair(1,2)  /* price coordinates */
         );
         _optionsPlaceholder = new ReaderOptions(/*startLine*/ 0, /*startCol*/ 0,
-                /*numCol*/ N, /*entryLines*/ 3, /*isCascad*/ 0);
+                /*numCol*/ N, /*entryLines*/ 3, /*isCascad*/ true);
         char *buf = new char[256];
         getcwd(buf, 256);
         _curDir = string(buf);
@@ -78,7 +78,7 @@ public:
         const uint32_t N = 4;
         string * buffer = new string[N];
         auto options = ReaderOptions(/*startLine*/ 0, /*startCol*/ 0,
-                /*numCol*/ N, /*entryLines*/ 3, /*isCascad*/ 0);
+                /*numCol*/ N, /*entryLines*/ 3, /*isCascad*/ true);
         auto reader = new CSVreader(_TEST_FILE_PATH, options, *_coords);
         buffer = reader->parseLine();
         TS_ASSERT_EQUALS(buffer[ResultIndexes::NAME]+";\n", _testAggregateData[1]);
@@ -108,7 +108,7 @@ public:
         // Tests correct number of start line.
         const uint32_t N = 4;
         auto options = ReaderOptions(/*startLine*/ 4, /*startCol*/ 0,
-                /*numCol*/ N, /*entryLines*/ 3, /*isCascad*/ 0);
+                /*numCol*/ N, /*entryLines*/ 3, /*isCascad*/ true);
         auto reader = new CSVreader(_TEST_FILE_PATH, options, *_coords);
         string * buffer = new string[N];
         buffer = reader->parseLine();

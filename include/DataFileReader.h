@@ -12,7 +12,7 @@ public:
     ReaderOptions(uint32_t startLine, uint32_t startCol, uint8_t numCol,
             uint8_t entryLines, bool isCascad)
     {
-        assert(isCascad == (entryLines == 1));
+        assert(isCascad == (entryLines != 1));
         _startLine = startLine;
         _startCol = startCol;
         _numCol = numCol;

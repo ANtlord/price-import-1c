@@ -105,6 +105,7 @@ public:
 
     void testExecute()
     {
+        // Test insert data.
         work w(*(DBSingleton::getSingleton()->getConnection()));
         result res = w.exec("select count(1) from "+_INDUSTRY_TABLE_NAME);
         w.commit();
@@ -120,5 +121,19 @@ public:
         res = w2.exec("select count(1) from "+_INDUSTRY_TABLE_NAME);
         w2.commit();
         TS_ASSERT_EQUALS(res[0][0].as<uint64_t>(), count+1);
+
+        // Test update data.
+        SaveCommand cmd2(_INDUSTRY_TABLE_NAME.c_str(), new string[N]{"name",
+                 "sort", "is_active"}, N, "name");
+        cmd2.addData(new string[N]{"super_ind", "200", "true"});
+        cmd2.execute();
+
+        work w3(*(DBSingleton::getSingleton()->getConnection()));
+        res = w3.exec("select count(1) from "+_INDUSTRY_TABLE_NAME);
+        auto superInd = w3.exec("select name, sort from "+_INDUSTRY_TABLE_NAME+" where name='super_ind'");
+        w3.commit();
+        TS_ASSERT_EQUALS(res[0][0].as<uint64_t>(), count+1);
+        TS_ASSERT_EQUALS(superInd[0][0].as<string>(), "super_ind");
+        TS_ASSERT_EQUALS(superInd[0][1].as<uint32_t>(), 200);
     }
 };

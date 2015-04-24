@@ -25,6 +25,9 @@ FieldCoordinates::FieldCoordinates(const FieldCoordinates &value) :
     _name = value.getName();
     _code = value.getCode();
     _price = value.getPrice();
+    _FIELDS = new const std::pair<uint8_t, uint8_t>* const[_FIELDS_NUM]{
+        &_name, &_code, &_price, &_category
+    };
 }
 
 FieldCoordinates::~FieldCoordinates()
