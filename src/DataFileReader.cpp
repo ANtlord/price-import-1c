@@ -111,8 +111,7 @@ std::string * DataFileReader::_setAggregatedValues()
         }
     }
     else {
-        _setResValues(PREV_LINE);
-        ++_entryLineCounter;
+        _setResValues(0);
         return _resValues;
     }
 

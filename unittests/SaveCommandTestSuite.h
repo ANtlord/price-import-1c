@@ -119,21 +119,41 @@ public:
 
         work w2(*(DBSingleton::getSingleton()->getConnection()));
         res = w2.exec("select count(1) from "+_INDUSTRY_TABLE_NAME);
-        w2.commit();
         TS_ASSERT_EQUALS(res[0][0].as<uint64_t>(), count+1);
 
         // Test update data.
-        SaveCommand cmd2(_INDUSTRY_TABLE_NAME.c_str(), new string[N]{"name",
-                 "sort", "is_active"}, N, "name");
-        cmd2.addData(new string[N]{"super_ind", "200", "true"});
-        cmd2.execute();
+        w2.exec(" insert into "+_COMPANY_TABLE_NAME
+            +" (id, sort, name, short_text, created_at, is_active)"
+            +" VALUES ("+ConfigSingleton::getSingleton()->getOption(Options::COMPANY_ID)
+            +", 300, 'Toy World', 'The best toys', '2013-01-01', true)");
+
+        res = w2.exec("select id from "+_COMPANY_TABLE_NAME+" where name = 'Toy World'");
+        const string COMPANY_ID = res[0][0].as<string>();
+        TS_ASSERT_EQUALS( COMPANY_ID, ConfigSingleton::getSingleton()
+                ->getOption(Options::COMPANY_ID));
+        w2.exec("insert into "+_CATEGORY_TABLE_NAME
+            +" (sort, name, is_active, section_id)"
+            +" VALUES (300, 'New Toys', true, "+COMPANY_ID+")");
+
+        res = w2.exec("select id from "+_CATEGORY_TABLE_NAME+" where name = 'New Toys'");
+        const string CATEGORY_ID = res[0][0].as<string>();
+        w2.exec("insert into "+_PRODUCT_TABLE_NAME
+            +" (sort, name, is_active, section_id, code, price)"
+            +" VALUES (300, 'Toy Iron Man', true, "+CATEGORY_ID+", '00111222', 10)");
+        w2.commit();
+
+        const uint8_t PRODUCT_N = 6;
+        SaveCommand productCmd(_PRODUCT_TABLE_NAME.c_str(), new string[PRODUCT_N]{
+            "name", "code", "price", "section_id", "sort", "is_active"
+        }, PRODUCT_N, "code");
+        productCmd.addData(new string[PRODUCT_N]{
+            "Toy Flash", "00111222", "10.0", CATEGORY_ID, "300", "true"
+        });
+        productCmd.execute();
 
         work w3(*(DBSingleton::getSingleton()->getConnection()));
-        res = w3.exec("select count(1) from "+_INDUSTRY_TABLE_NAME);
-        auto superInd = w3.exec("select name, sort from "+_INDUSTRY_TABLE_NAME+" where name='super_ind'");
+        res = w3.exec("select name from "+_PRODUCT_TABLE_NAME+" where code = '00111222'");
+        TS_ASSERT_EQUALS(res[0][0].as<string>(), "Toy Flash");
         w3.commit();
-        TS_ASSERT_EQUALS(res[0][0].as<uint64_t>(), count+1);
-        TS_ASSERT_EQUALS(superInd[0][0].as<string>(), "super_ind");
-        TS_ASSERT_EQUALS(superInd[0][1].as<uint32_t>(), 200);
     }
 };

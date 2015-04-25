@@ -11,7 +11,7 @@ TARGET=$(shell basename `pwd`)
 
 SOURCES=$(wildcard *.cpp src/*.cpp)
 TEST_SOURCES=$(wildcard src/*.cpp)
-UNIT_FILES=$(wildcard unittests/SaveCommandTestSuite.h)
+UNIT_FILES=$(wildcard unittests/*.h)
 
 OBJ_DIR=obj/Release/
 vpath %.o $(OBJ_DIR)

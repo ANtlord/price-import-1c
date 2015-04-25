@@ -63,6 +63,5 @@ bool FieldCoordinates::isPrice(uint8_t x, uint8_t y) const
 
 const std::pair<uint8_t, uint8_t>* const* FieldCoordinates::getFieldsAsArray() const
 {
-    std::cout << _FIELDS[0] << std::endl;
     return _FIELDS;
 }
