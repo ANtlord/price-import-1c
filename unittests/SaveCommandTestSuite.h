@@ -105,6 +105,7 @@ public:
 
     void testExecute()
     {
+        // Test insert data.
         work w(*(DBSingleton::getSingleton()->getConnection()));
         result res = w.exec("select count(1) from "+_INDUSTRY_TABLE_NAME);
         w.commit();
@@ -118,7 +119,41 @@ public:
 
         work w2(*(DBSingleton::getSingleton()->getConnection()));
         res = w2.exec("select count(1) from "+_INDUSTRY_TABLE_NAME);
-        w2.commit();
         TS_ASSERT_EQUALS(res[0][0].as<uint64_t>(), count+1);
+
+        // Test update data.
+        w2.exec(" insert into "+_COMPANY_TABLE_NAME
+            +" (id, sort, name, short_text, created_at, is_active)"
+            +" VALUES ("+ConfigSingleton::getSingleton()->getOption(Options::COMPANY_ID)
+            +", 300, 'Toy World', 'The best toys', '2013-01-01', true)");
+
+        res = w2.exec("select id from "+_COMPANY_TABLE_NAME+" where name = 'Toy World'");
+        const string COMPANY_ID = res[0][0].as<string>();
+        TS_ASSERT_EQUALS( COMPANY_ID, ConfigSingleton::getSingleton()
+                ->getOption(Options::COMPANY_ID));
+        w2.exec("insert into "+_CATEGORY_TABLE_NAME
+            +" (sort, name, is_active, section_id)"
+            +" VALUES (300, 'New Toys', true, "+COMPANY_ID+")");
+
+        res = w2.exec("select id from "+_CATEGORY_TABLE_NAME+" where name = 'New Toys'");
+        const string CATEGORY_ID = res[0][0].as<string>();
+        w2.exec("insert into "+_PRODUCT_TABLE_NAME
+            +" (sort, name, is_active, section_id, code, price)"
+            +" VALUES (300, 'Toy Iron Man', true, "+CATEGORY_ID+", '00111222', 10)");
+        w2.commit();
+
+        const uint8_t PRODUCT_N = 6;
+        SaveCommand productCmd(_PRODUCT_TABLE_NAME.c_str(), new string[PRODUCT_N]{
+            "name", "code", "price", "section_id", "sort", "is_active"
+        }, PRODUCT_N, "code");
+        productCmd.addData(new string[PRODUCT_N]{
+            "Toy Flash", "00111222", "10.0", CATEGORY_ID, "300", "true"
+        });
+        productCmd.execute();
+
+        work w3(*(DBSingleton::getSingleton()->getConnection()));
+        res = w3.exec("select name from "+_PRODUCT_TABLE_NAME+" where code = '00111222'");
+        TS_ASSERT_EQUALS(res[0][0].as<string>(), "Toy Flash");
+        w3.commit();
     }
 };
