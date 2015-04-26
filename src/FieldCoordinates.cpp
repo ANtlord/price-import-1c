@@ -3,35 +3,40 @@
 #include <algorithm>
 #include <iostream>
 
-FieldCoordinates::FieldCoordinates(const std::pair<uint8_t, uint8_t> &category,
-    const std::pair<uint8_t, uint8_t> &name,
-    const std::pair<uint8_t, uint8_t> &code,
-    const std::pair<uint8_t, uint8_t> &price) :
+using std::pair;
+
+FieldCoordinates::FieldCoordinates(
+     std::pair<uint8_t, uint8_t> *category,
+     std::pair<uint8_t, uint8_t> *name,
+     std::pair<uint8_t, uint8_t> *price,
+     std::pair<uint8_t, uint8_t> *code,
+     std::pair<uint8_t, uint8_t> *desc) :
     _FIELDS_NUM(4)
 {
-    _category = category;
-    _name = name;
-    _code = code;
-    _price = price;
+    _category = new pair<uint8_t, uint8_t>(*category);
+    _name = new pair<uint8_t, uint8_t>(*name);
+    _price = new pair<uint8_t, uint8_t>(*price);
+    _code = (code == nullptr) ? nullptr : new pair<uint8_t, uint8_t>(*code);
     _FIELDS = new const std::pair<uint8_t, uint8_t>* const[_FIELDS_NUM]{
-        &_name, &_code, &_price, &_category
+        _name, _code, _price, _category
     };
 }
 
 FieldCoordinates::FieldCoordinates(const FieldCoordinates &value) : 
     _FIELDS_NUM(4)
 {
-    _category = value.getCategory();
-    _name = value.getName();
-    _code = value.getCode();
-    _price = value.getPrice();
+    *_category = *value.getCategory();
+    *_name = *value.getName();
+    *_code = *value.getCode();
+    *_price = *value.getPrice();
     _FIELDS = new const std::pair<uint8_t, uint8_t>* const[_FIELDS_NUM]{
-        &_name, &_code, &_price, &_category
+        _name, _code, _price, _category
     };
 }
 
 FieldCoordinates::~FieldCoordinates()
 {
+    delete _category, _name, _price, _code;
     delete[] _FIELDS;
 }
 
@@ -58,7 +63,7 @@ ResultIndexes FieldCoordinates::getResultIndex(uint8_t x, uint8_t y) const
 
 bool FieldCoordinates::isPrice(uint8_t x, uint8_t y) const
 {
-    return (_price.first == x && _price.second == y);
+    return (_price->first == x && _price->second == y);
 }
 
 const std::pair<uint8_t, uint8_t>* const* FieldCoordinates::getFieldsAsArray() const

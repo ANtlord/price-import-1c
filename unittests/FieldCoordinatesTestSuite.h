@@ -2,6 +2,7 @@
 #include "../include/FieldCoordinates.h"
 
 using std::make_pair;
+typedef std::pair<uint8_t, uint8_t> cpair;
 
 class FieldCoordinatesTestSuite : public CxxTest::TestSuite
 {
@@ -17,10 +18,10 @@ public:
     void testGetResultIndex()
     {
         FieldCoordinates coords(
-            make_pair(0,0), /* section coordinates */
-            make_pair(0,1), /* name coordinates */
-            make_pair(0,2), /* code coordinates */
-            make_pair(1,2)  /* price coordinates */
+            new cpair(0,0), /* section coordinates */
+            new cpair(0,1), /* name coordinates */
+            new cpair(0,2), /* code coordinates */
+            new cpair(1,2)  /* price coordinates */
         );
 
         try {
@@ -33,9 +34,9 @@ public:
         }
     }
 
-    void testgetFieldsAsArray()
+    void testGetFieldsAsArray()
     {
-        std::pair<uint8_t, uint8_t> arr[] = {
+        cpair arr[] = {
             make_pair(0,1), /* name coordinates */
             make_pair(0,2), /* code coordinates */
             make_pair(1,2), /* price coordinates */
@@ -43,7 +44,7 @@ public:
         };
 
         FieldCoordinates coords(
-            arr[3], arr[0], arr[1], arr[2]
+            &arr[3], &arr[0], &arr[2], &arr[1]
         );
 
         auto arr2 = coords.getFieldsAsArray();
@@ -51,7 +52,6 @@ public:
             TS_ASSERT_EQUALS(arr2[i]->first, arr[i].first);
             TS_ASSERT_EQUALS(arr2[i]->second, arr[i].second);
         }
-
     }
 
 private:

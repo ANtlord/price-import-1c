@@ -9,9 +9,9 @@ VENDOR_HEADERS=-I$(PROJECT_FOLDER)/vendor/forge/include -I$(PROJECT_FOLDER)/vend
 export LD_LIBRARY_PATH=$(PROJECT_FOLDER)/vendor/libxls/libxls/build/lib
 TARGET=$(shell basename `pwd`)
 
-SOURCES=$(wildcard *.cpp src/*.cpp)
-TEST_SOURCES=$(wildcard src/*.cpp)
-UNIT_FILES=$(wildcard unittests/*.h)
+SOURCES=$(wildcard src/*.cpp)
+TEST_SOURCES=$(wildcard src/CSVreaderTestSuite.cpp)
+UNIT_FILES=$(wildcard unittests/FieldCoordinatesTestSuite.h)
 
 OBJ_DIR=obj/Release/
 vpath %.o $(OBJ_DIR)
