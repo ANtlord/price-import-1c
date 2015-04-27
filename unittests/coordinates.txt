@@ -1,0 +1,4 @@
+name = 0,1
+code = 0,2
+price = 1,2
+category = 0,0

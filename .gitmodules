@@ -10,3 +10,6 @@
 [submodule "vendor/json"]
 	path = vendor/json
 	url = https://github.com/nlohmann/json.git
+[submodule "tclap-code"]
+	path = vendor/tclap-code
+	url = git://git.code.sf.net/p/tclap/code

@@ -5,6 +5,7 @@
 #include <iostream>
 #include <find.h>
 #include <each.h>
+#include <easylogging++.h>
 
 using std::string;
 using std::vector;
@@ -59,12 +60,14 @@ bool DBSingleton::checkEntry(const string &tableName, const string &fieldName,
 {
     string query = "select exists(select 1 from "+tableName+" as t1"
         +_generateCondition(tableName, fieldName, value, w, SELECT)+")";
+    const string ERROR_STRING = "Error while checking existance of " + value;
 
     pqxx::result res;
-    _execWork(w, query, &res);
+    bool execRes = _execWork(w, query, &res);
+    LOG_IF(!execRes, ERROR) << ERROR_STRING;
+    assert(execRes);
     if (res.size() != 1) {
-        std::cout << "Error while checking existance of "
-            << value << std::endl;
+        LOG(ERROR) << ERROR_STRING;
         return false;
     }
     else { // Something just is wrong over there. 
@@ -97,10 +100,13 @@ bool DBSingleton::updateEntry(const std::string &tableName,
                 +_generateCondition(tableName, keyFieldName,
                         values[keyFieldIdx], w, UPDATE);
 
-            return _execWork(w, query);
+            bool res = _execWork(w, query);
+            LOG_IF(!res, ERROR) << "Error in update query: " << query;
+            return res;
         }
         else {
-            printf("update else before end of the line\n");
+            LOG(ERROR) << "Key field index is greater than number of fields: "
+                << keyFieldIdx << " > " << fieldsNum;
             return false;
         }
     }
@@ -140,27 +146,28 @@ bool DBSingleton::insertEntry(const std::string &tableName, const string fields[
 
     bool res = _execWork(w, query);
     if (res) w.commit();
-    else printf("error insert %s\n", query.c_str());
+    else LOG(ERROR) << "Error in insert query: " << query.c_str();
     return res;
 }
 
 bool DBSingleton::_execWork(pqxx::work &w, const string& query, pqxx::result * res) const
 {
+    const string ERROR_PREFIX = "Error query: " + query;
     try {
         if (res != nullptr) *res = w.exec(query);
         else w.exec(query);
         return true;
     }
     catch (pqxx::data_exception &e) {
-        std::cout << "Error query in insert: " << query << std::endl;
+        LOG(ERROR) << ERROR_PREFIX << " " << e.what();
         return false;
     }
     catch (pqxx::undefined_column &e) {
-        std::cout << "Error query in insert: " << query << std::endl;
+        LOG(ERROR) << ERROR_PREFIX << " " << e.what();
         return false;
     }
     catch (pqxx::usage_error &e) {
-        std::cout << "Error query in insert: " << query << std::endl;
+        LOG(ERROR) << ERROR_PREFIX << " " << e.what();
         return false;
     }
 }

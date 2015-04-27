@@ -21,6 +21,7 @@ public:
 class FieldCoordinates
 {
 public:
+    FieldCoordinates(const std::string& path);
     FieldCoordinates(const std::pair<uint8_t, uint8_t> &category,
         const std::pair<uint8_t, uint8_t> &name,
         const std::pair<uint8_t, uint8_t> &price,
@@ -48,6 +49,10 @@ private:
     std::pair<uint8_t, uint8_t> _code;
     const uint8_t _FIELDS_NUM;
     const std::pair<uint8_t, uint8_t>* const* _FIELDS;
+    void _init(const std::pair<uint8_t, uint8_t> &category,
+        const std::pair<uint8_t, uint8_t> &name,
+        const std::pair<uint8_t, uint8_t> &price,
+        const std::pair<uint8_t, uint8_t> &code);
 };
 
 #endif //FIELDCOORDINATES_H

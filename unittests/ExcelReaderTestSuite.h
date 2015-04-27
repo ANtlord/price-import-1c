@@ -25,9 +25,9 @@ public:
             make_pair(0,2), /* code coordinates */
             make_pair(1,2)  /* price coordinates */
         );
-        char *buf = new char[256];
-        getcwd(buf, 256);
-        _TEST_FILE_PATH = string(buf)+"/unittests/price_simple.xls";
+        string path(realpath("/proc/self/exe", NULL));
+        path = path.substr(0, path.rfind('/'));
+        _TEST_FILE_PATH = path+"/unittests/price_simple.xls";
     }
 
     void testReadline()

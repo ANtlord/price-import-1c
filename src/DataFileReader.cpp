@@ -3,6 +3,7 @@
 #include <trim.h>
 #include <filter.h>
 #include <each.h>
+#include <easylogging++.h>
 
 DataFileReader::DataFileReader(std::string filepath,
         const ReaderOptions& options,
@@ -61,7 +62,7 @@ void DataFileReader::_setResValues(const uint8_t line)
         try {
             _resValues[COORDS->getResultIndex(i, line)] = _values[i];
         } catch (ResultIndexesException &e){
-            printf("%s\n", e.what(i, line));
+            LOG(ERROR) << e.what(i, line);
         }
     }
 }
