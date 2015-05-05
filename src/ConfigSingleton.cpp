@@ -1,5 +1,6 @@
 #include "../include/ConfigSingleton.h"
 
+using std::string;
 ConfigSingleton * ConfigSingleton::_self = nullptr;
 
 ConfigSingleton * ConfigSingleton::getSingleton()
@@ -11,6 +12,9 @@ ConfigSingleton * ConfigSingleton::getSingleton()
 
 ConfigSingleton::ConfigSingleton ()
 {
+    // Is only for Linux.
+    string path(realpath("/proc/self/exe", NULL));
+    _data[PATH] = std::move(path.substr(0, path.rfind('/')));
 }
 
 ConfigSingleton * ConfigSingleton::addOption(Options key, const std::string &value)

@@ -7,6 +7,7 @@
 #include <exception>
 #include <list>
 #include <iostream>
+#include <easylogging++.h>
 
 using pqxx::work;
 using std::list;
@@ -34,6 +35,8 @@ const std::string * SaveCommand::getFields() const
 
 bool SaveCommand::execute() const
 {
+    uint64_t insertedCounter = 0, updateErrorCounter = 0;
+
     if (_data.size() == 0) return false;
     else {
         DBSingleton * dbSingleton = DBSingleton::getSingleton();
@@ -44,8 +47,11 @@ bool SaveCommand::execute() const
             for (auto it: _data) {
                 // update entry.
                 if (dbSingleton->checkEntry(_TABLE, _KEY, it[_keyIndex], w)) {
-                    dbSingleton->updateEntry(_TABLE, _FIELDS, it, _N, _KEY, w,
-                            _keyIndex);
+                    if(!dbSingleton->updateEntry(_TABLE, _FIELDS, it, _N, _KEY,
+                                w, _keyIndex))
+                    {
+                        ++updateErrorCounter;
+                    }
                 }
                 else {    // insert entry.
                     insertData.push_back(it);
@@ -53,27 +59,25 @@ bool SaveCommand::execute() const
             }
         }
 
-        if (_KEY == nullptr) {
-            insertData = _data;
-        }
+        if (_KEY == nullptr) insertData = _data;
 
         if (insertData.size() > 0) {
-            if (dbSingleton->insertEntryList(_TABLE, _FIELDS, insertData, _N, w))
+            if (dbSingleton->insertEntryList(_TABLE, _FIELDS, insertData, _N, w)) {
+                insertedCounter = insertData.size();
                 w.commit();
-            else { // If query will be fail, than program tries insert items by 1.
-                for (auto it: insertData) {
-                    //forge::each<std::string>([&w](std::string &item){
-                            //item = w.quote(item);}, it, _N);
-                    dbSingleton->insertEntry(_TABLE, _FIELDS, it, _N);
-                }
+            }
+            else { // If query will be fail, than program tries insert items 1 by 1.
+                for (auto it: insertData)
+                    if (dbSingleton->insertEntry(_TABLE, _FIELDS, it, _N))
+                        ++insertedCounter;
             }
         }
-        else {
-            w.commit();
-        }
-        
-        std::cout << "udpated: " << _data.size() - insertData.size() << std::endl;
-        std::cout << "inserted: " << insertData.size() << std::endl;
+        else w.commit();
+
+        LOG(INFO) << "udpated: " << _data.size() - insertData.size() - updateErrorCounter;
+        LOG(INFO) << "inserted: " << insertedCounter;
+        LOG_IF(updateErrorCounter > 0, WARNING) << "Update Errors: "
+            << updateErrorCounter;
         return true;
     }
 }

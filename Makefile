@@ -1,9 +1,11 @@
-CXX=g++ -std=c++0x
+CXX=g++ -std=c++11
 #CXXFLAGS=$(shell wx-config --cxxflags)
 #LIBS=$(shell wx-config --gl-libs --libs)
 PROJECT_FOLDER=$(shell pwd)
 VENDOR_LIBS=-L./vendor/forge -lforge -lpqxx -L./vendor/libxls/libxls/build/lib -lxlsreader
-VENDOR_HEADERS=-I$(PROJECT_FOLDER)/vendor/forge/include -I$(PROJECT_FOLDER)/vendor/libxls/libxls/build/include -I./vendor/cxxtest/
+VENDOR_HEADERS=-I$(PROJECT_FOLDER)/vendor/forge/include -I$(PROJECT_FOLDER)/vendor/libxls/libxls/build/include \
+			   -I$(PROJECT_FOLDER)/vendor/cxxtest/ -I$(PROJECT_FOLDER)/vendor/el/ \
+			   -I$(PROJECT_FOLDER)/vendor/tclap-code/build/include/
 #AL_LIBS=-lalut -lvorbisfile -logg
 
 export LD_LIBRARY_PATH=$(PROJECT_FOLDER)/vendor/libxls/libxls/build/lib
@@ -30,6 +32,9 @@ all: $(SOURCES) $(TARGET)
 
 debug: CXX=g++ -std=c++0x -g
 debug: $(SOURCES) $(TARGET)
+
+release: CXX=g++ -std=c++0x -O3 -march=native
+release: $(SOURCES) $(TARGET)
    
 $(OBJECTS): | $(OBJ_DIR)
 
@@ -44,7 +49,8 @@ clean:
 
 # unit tests.
 $(RUNNER_CPP): $(UNIT_FILES)
-	./vendor/cxxtest/bin/cxxtestgen --error-printer -o $(RUNNER_CPP) $(UNIT_FILES)
+	$(PROJECT_FOLDER)/vendor/cxxtest/bin/cxxtestgen --error-printer \
+		--template=$(PROJECT_FOLDER)/unittests/runner.tpl -o $(RUNNER_CPP) $(UNIT_FILES)
 
 $(RUNNER): $(TEST_OBJECTS) $(RUNNER_CPP)
 	$(CXX) -o $(RUNNER) $(RUNNER_CPP) $(TEST_OBJECTS) $(VENDOR_HEADERS) $(VENDOR_LIBS)
@@ -53,8 +59,8 @@ test: $(RUNNER)
 	./$(RUNNER)
 
 # coverage.
-coverage: CXX=g++ -std=c++0x -O0 --coverage -g
-coverage: $(RUNNER)
+cov: CXX=g++ -std=c++0x -O0 --coverage -g
+cov: $(RUNNER)
 	./$(RUNNER)
 	gcov -r -o $(OBJ_DIR)src/ $(TEST_SOURCES) 
 

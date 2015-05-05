@@ -38,7 +38,14 @@ class SaveCommandTestSuite : public CxxTest::TestSuite
     const string _CATEGORY_TABLE_NAME = "service_category";
     const string _PRODUCT_TABLE_NAME = "service_product";
     const string _COMPANY_TABLE_NAME = "service_company";
-    
+
+    void _makeQuery(const string& query, result& res)
+    {
+        work w(*(DBSingleton::getSingleton()->getConnection()));
+        res = w.exec(query);
+        w.commit();
+    }
+
 public:
     SaveCommandTestSuite()
     {
@@ -150,10 +157,22 @@ public:
             "Toy Flash", "00111222", "10.0", CATEGORY_ID, "300", "true"
         });
         productCmd.execute();
-
-        work w3(*(DBSingleton::getSingleton()->getConnection()));
-        res = w3.exec("select name from "+_PRODUCT_TABLE_NAME+" where code = '00111222'");
+        _makeQuery("select name from "+_PRODUCT_TABLE_NAME+" where code = '00111222'", res);
         TS_ASSERT_EQUALS(res[0][0].as<string>(), "Toy Flash");
-        w3.commit();
+
+        // Invoke error during inserting.
+        productCmd.clearData();
+        productCmd.addData(new string[PRODUCT_N]{
+            "Toy Batman", "6111122", "-10.0", CATEGORY_ID, "300", "123213"
+        });
+        productCmd.addData(new string[PRODUCT_N]{
+            "Toy Batman", "00111222", "-10.0", CATEGORY_ID, "300", "123213"
+        });
+        productCmd.execute();
+        _makeQuery("select count(1) from "+_PRODUCT_TABLE_NAME+" where code = '6111122'", res);
+        TS_ASSERT_EQUALS(res[0][0].as<uint64_t>(), 0);
+
+        _makeQuery("select name from "+_PRODUCT_TABLE_NAME+" where code = '00111222'", res);
+        TS_ASSERT_EQUALS(res[0][0].as<string>(), "Toy Flash");
     }
 };

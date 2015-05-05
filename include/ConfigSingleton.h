@@ -8,7 +8,8 @@ enum Options : uint8_t {
     DB_NAME = 1,
     DB_USER = 2,
     PRODUCT_TABLE = 3,
-    CATEGORY_TABLE = 4
+    CATEGORY_TABLE = 4,
+    PATH = 5
 };
 
 class ConfigSingleton
@@ -20,7 +21,7 @@ public:
     const std::string &getOption(Options key) const;
 
 private:
-    std::array<std::string, 5 /* Options length */> _data;
+    std::array<std::string, 6 /* Options length */> _data;
     static ConfigSingleton * _self;
     ConfigSingleton();
 };
