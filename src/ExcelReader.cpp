@@ -77,10 +77,21 @@ void ExcelReader::_formatCell(xlsCell *cell, CellContent& content) const
 		content.val.l = cell->l;	// possible numeric conversion done for you
 		break;
     case 0x0203:	//NUMBER
-    case 0x027E:	//RK
+    case 0x027E: {	//RK
+        // TODO: if you will meet issue which will be related with numbers
+        // a.00 and a, and they should be different, try to fix it in libxls
+        // xls.c xls_addCell(xlsWorkSheet* pWS,BOF* bof,BYTE* buf)
+        const auto n = content.str.find('.');
+        if (n != string::npos) {
+            auto counter = n;
+            for (size_t i = n+1; i < content.str.length(); ++i)
+                if (content.str.at(i) != '0') counter = i+1;
+            content.str.erase(counter);
+        }
 		content.type = cellFloat;
 		content.val.d = cell->d;
         break;
+    }
     default:
 		content.type = cellUnknown;
         break;
